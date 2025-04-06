@@ -1,0 +1,7 @@
+capstone/
+__pycache__/
+*.pyc
+.env
+.idea
+.venv/
+replacements.txt

@@ -1,0 +1,223 @@
+:root {
+  --gold: #FFC800;
+  --light-bg: #fffef7;
+  --gray: #444;
+  --card-bg: #fffbea;
+}
+
+body {
+  display: flex;
+  height: 100vh;
+  background-color: var(--light-bg);
+  color: var(--gray);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 200px;
+  background: white;
+  border-right: 1px solid #eee;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.logo-text {
+  color: var(--gold);
+  font-weight: 600;
+  margin-left: 10px;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed .logo-text {
+  opacity: 0;
+}
+
+.nav-links,
+.logout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.label {
+  transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed .label {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-btn {
+  background: var(--gold);
+  border: none;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+/* Main Layout */
+.main {
+  flex: 1;
+  display: flex;
+  gap: 30px;
+  padding: 30px;
+}
+  
+  .chat-area {
+    flex: 6;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 0 5px rgba(0,0,0,0.05);
+  }
+  
+  .chat-input {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .chat-input input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+  }
+  
+  .chat-input button {
+    background: var(--gold);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+  
+  .recommendation-area {
+    flex: 4;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 25px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .recommendation-area h3 {
+    margin-bottom: 10px;
+    font-size: 18px;
+  }
+  
+  .stock-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  
+  .confidence-bar {
+    height: 8px;
+    background-color: #eee;
+    border-radius: 5px;
+    margin: 8px 0;
+  }
+  
+  .confidence-fill {
+    height: 100%;
+    background-color: #4caf50;
+  }
+  
+  .input-section {
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #ccc;
+  }
+  
+  .input-label {
+    font-weight: 600;
+    margin: 15px 0 5px;
+  }
+  
+  .input-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .pill-button {
+    padding: 6px 14px;
+    border-radius: 30px;
+    border: 1px solid var(--gold);
+    background-color: white;
+    color: var(--gold);
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  
+  .pill-button.selected {
+    background-color: var(--gold);
+    color: white;
+  }
+  
+  .slider-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .slider-container input[type="range"] {
+    width: 160px;
+  }
+  
+  .slider-value {
+    min-width: 90px;
+    font-weight: 500;
+  }
+  
+  .horizon-hint {
+    font-size: 12px;
+    color: #888;
+    margin-left: 10px;
+  }
+
+  .recommend-btn {
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 500;
+    background-color: var(--gold);
+    border: none;
+    border-radius: 25px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  .recommend-btn:hover {
+    background-color: #e6b200;
+  }
+  

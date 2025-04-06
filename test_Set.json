@@ -1,0 +1,14 @@
+[
+  {
+    "question": "What is EPS?",
+    "expected_keywords": ["earnings", "per", "share"]
+  },
+  {
+    "question": "What does a high P/E ratio mean?",
+    "expected_keywords": ["overvalued", "price", "earnings"]
+  },
+  {
+    "question": "Define inflation",
+    "expected_keywords": ["rise", "prices", "economy"]
+  }
+]

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KuberAI – Finance Simplified</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #FFC800;
+      --bg: #fffef7;
+      --text: #333;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      flex-direction: column;
+      padding: 30px;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 20px;
+      margin-bottom: 40px;
+    }
+
+    .cta-btn {
+      background: var(--gold);
+      border: none;
+      color: white;
+      font-size: 18px;
+      padding: 14px 32px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      text-decoration: none;
+    }
+
+    .cta-btn:hover {
+      background: #e6b200;
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1>KuberAI</h1>
+  <p>Finance Simplified.</p>
+  <a href="{{ url_for('dashboard') }}" class="cta-btn">Launch App</a>
+
+</body>
+</html>
