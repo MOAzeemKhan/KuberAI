@@ -5,3 +5,12 @@ __pycache__/
 .idea
 .venv/
 replacements.txt
+uploads/
+.dockerignore
+docs/chroma/
+docs/chroma_rag/
+Table_EXtractor.ipynb
+test_app.py
+static/extracted/*.json
+*.sqlite3
+*.bin
