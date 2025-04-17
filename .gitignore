@@ -17,3 +17,4 @@ test_env/
 old/
 commands.txt
 testenv/
+.DS_Store
