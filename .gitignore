@@ -10,7 +10,8 @@ uploads/
 docs/chroma/
 docs/chroma_rag/
 Table_EXtractor.ipynb
-test_app.py
 static/extracted/*.json
 *.sqlite3
 *.bin
+test_env/
+old/

@@ -266,4 +266,72 @@ body {
   .recommend-btn:hover {
     background-color: #e6b200;
   }
-  
+
+/* Chat Messages - Bot and User Styles */
+.message {
+  display: flex;
+  flex-direction: column; /* Added to stack name + message vertically */
+  margin-bottom: 12px;
+  max-width: 70%;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08); /* Smoother shadow */
+}
+
+.message > div:first-child {
+  font-weight: 600;
+  margin-bottom: 6px; /* Breathing space between Name and Message */
+}
+
+.message ul {
+  padding-left: 20px;
+  margin-top: 8px;
+}
+
+.message li {
+  margin-bottom: 6px;
+}
+
+/* Bot bubble */
+.message.bot {
+  align-self: flex-start;
+  background-color: #f9f9f9;
+  border-radius: 15px 15px 15px 5px;
+  padding: 12px 16px;
+  color: #333;
+  font-size: 15px;
+}
+
+/* User bubble */
+.message.user {
+  align-self: flex-end;
+  background-color: var(--gold);
+  color: white;
+  border-radius: 15px 15px 5px 15px;
+  padding: 12px 16px;
+  font-size: 15px;
+}
+
+/* Chat Input Box - Bigger and Neater */
+.chat-input input {
+  flex: 1;
+  padding: 15px 20px; /* Increased padding */
+  border-radius: 25px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+/* Send Button */
+.chat-input button {
+  background: var(--gold);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.chat-input button:hover {
+  background-color: #e6b200;
+}

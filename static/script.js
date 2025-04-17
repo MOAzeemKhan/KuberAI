@@ -1,4 +1,3 @@
-// --- Updated script.js with loading indicators and status checking ---
 document.addEventListener("DOMContentLoaded", () => {
   const chatForm = document.getElementById("chat-form");
   const chatInput = document.getElementById("chat-input");
@@ -100,6 +99,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  function formatMarkdown(text) {
+    // Replace **bold** with <b>bold</b>
+    text = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    // Replace *italic* with <i>italic</i>
+    text = text.replace(/\*(.*?)\*/g, '<i>$1</i>');
+    return text;
+  }
+
   // Check processing status
   async function checkProcessingStatus(loadingId) {
     if (!currentTaskId) {
@@ -159,7 +166,17 @@ document.addEventListener("DOMContentLoaded", () => {
   function appendMessage(sender, message, type) {
     const bubble = document.createElement("div");
     bubble.className = `message ${type}`;
-    bubble.innerHTML = `<strong>${sender}:</strong> ${message}`;
+
+    if (type === "user") {
+      bubble.innerHTML = `
+        <div><strong>${sender}:</strong> ${message}</div>
+      `;
+    } else {
+      bubble.innerHTML = `
+        <div><strong>${sender}:</strong> ${marked.parse(message)}</div>
+      `;
+    }
+
     chatBox.appendChild(bubble);
     chatBox.scrollTop = chatBox.scrollHeight;
   }

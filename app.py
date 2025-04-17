@@ -1,4 +1,3 @@
-# app.py - Main Flask application for KuberAI financial assistant
 print("STEP 1: Starting app.py")
 from flask import Flask, jsonify, render_template, request, session
 
@@ -17,9 +16,16 @@ import itertools
 import json
 import uuid
 from datetime import datetime
-import threading  # Make sure this import is here
-from threading import Thread  # This was missing - explicitly import Thread
+import threading
+from threading import Thread
 import time
+import cv2
+import pytesseract
+from pdf2image import convert_from_path
+from PIL import Image
+import re
+from typing import List, Tuple, Any, Dict
+import logging
 
 # LangChain-related imports
 from langchain_community.vectorstores import Chroma
@@ -30,7 +36,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 
 print("STEP 5: Embeddings imported")
 
-from langchain.chains import RetrievalQA
+from langchain.chains import RetrievalQA, LLMChain
 from langchain.prompts import PromptTemplate
 from langchain_community.llms import HuggingFaceHub
 
@@ -43,7 +49,13 @@ from together import Together
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 together_client = Together(api_key=os.environ.get("TOGETHER_API_KEY"))
+
+
 def ask_llama3_70b(prompt):
     model = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
     response = together_client.chat.completions.create(
@@ -61,6 +73,215 @@ def get_together_response(prompt):
     return response.choices[0].message.content.strip()
 
 
+# TableExtractor class from the notebook
+class TableExtractor:
+    def __init__(self, pdf_path):
+        '''self.huggingfacehub_api_token = os.environ.get("HUGGINGFACEHUB_API_TOKEN")
+        self.repo_id = "mistralai/Mistral-7B-Instruct-v0.1"
+        self.llm = HuggingFaceHub(
+            huggingfacehub_api_token=self.huggingfacehub_api_token,
+            repo_id=self.repo_id,
+            model_kwargs={"temperature": 0.1, "max_new_tokens": 3000}
+        )'''
+        self.pdf_path = pdf_path
+        pass
+
+    def _image_list_(self, pdf_path: str) -> List[str]:
+        try:
+            images = convert_from_path(self.pdf_path)
+            img_list = []
+            for i, image in enumerate(images):
+                image_name = f'temp_images/page_{i}.jpg'
+                os.makedirs('temp_images', exist_ok=True)
+                image.save(image_name, 'JPEG')
+                img_list.append(image_name)
+            return img_list
+        except Exception as e:
+            logging.error(f"Error converting PDF to images: {e}")
+            raise
+
+    def _preprocess_image_(self, image_path: str) -> Any:
+        try:
+            img = cv2.imread(image_path)
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            denoised = cv2.fastNlMeansDenoising(gray, None, 30, 7, 21)
+            _, thresh = cv2.threshold(denoised, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            return thresh
+        except Exception as e:
+            logging.error("Error during preprocessing", exc_info=True)
+            raise
+
+    def _detect_tables_(self, image: Any) -> List[Tuple[int, int, int, int]]:
+        try:
+            vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, int(image.shape[0] / 30)))
+            horiz_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (int(image.shape[1] / 30), 1))
+            vertical_lines = cv2.morphologyEx(image, cv2.MORPH_OPEN, vertical_kernel, iterations=2)
+            horizontal_lines = cv2.morphologyEx(image, cv2.MORPH_OPEN, horiz_kernel, iterations=2)
+            table_grid = cv2.add(horizontal_lines, vertical_lines)
+            contours, _ = cv2.findContours(table_grid, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            tables = []
+            for contour in contours:
+                x, y, w, h = cv2.boundingRect(contour)
+                if w * h > image.size * 0.001:
+                    tables.append((x, y, w, h))
+            logging.info(f"Detected {len(tables)} tables.")
+            return tables
+        except Exception as e:
+            logging.error("Error detecting tables", exc_info=True)
+            raise
+
+    def _extract_text_from_tables_(self, image: Any, tables: List[Tuple[int, int, int, int]]) -> List[str]:
+        try:
+            texts = []
+            for (x, y, w, h) in tables:
+                table_image = image[y:y + h, x:x + w]
+                text = pytesseract.image_to_string(table_image, lang='eng')
+                texts.append(text)
+            logging.info(f"Extracted text from {len(tables)} tables.")
+            return texts
+        except Exception as e:
+            logging.error("Error extracting text", exc_info=True)
+            raise
+
+    def extract_tables_and_text(self) -> List[str]:
+        try:
+            images = self._image_list_(self.pdf_path)
+            all_tables_text = []
+            for image_path in images:
+                preprocessed_image = self._preprocess_image_(image_path)
+                tables = self._detect_tables_(preprocessed_image)
+                texts = self._extract_text_from_tables_(preprocessed_image, tables)
+                all_tables_text.extend(texts)
+            return all_tables_text
+        except Exception as e:
+            logging.error("Error extracting tables and text", exc_info=True)
+            raise
+
+    def extracted_data(self) -> List[str]:
+        try:
+            tables_text = self.extract_tables_and_text()
+            answer = []
+            for text in tables_text:
+                cleaned_string = re.sub(r'[ \t]+', ' ', text)
+                cleaned_string = re.sub(r'\n\s*\n', '', cleaned_string)
+                answer.append(cleaned_string)
+            return answer
+        except Exception as e:
+            logging.error("Error cleaning extracted data", exc_info=True)
+            raise
+
+    def response(self, content: str) -> str:
+        try:
+            '''template = """[INST]you are json formatter. your task analyze the given data {data} and must return answer as json. key doesn't have value return empty string. only generate json for given data's. all answers should be in json format (for all data).[/INST]"""
+            prompt = PromptTemplate(template=template, input_variables=["data"])
+            llm_chain = LLMChain(prompt=prompt, verbose=True, llm=self.llm)
+            result = llm_chain.run({"data": content})
+            return result'''
+            prompt = f"""[INST]You are a JSON formatter. Your task is to analyze the given data and return a JSON output. 
+            Key without value should return an empty string. Only generate JSON for the given data. 
+            All answers must be in valid JSON format.
+
+            DATA:
+            {content}
+            [/INST]"""
+
+            response = get_together_response(prompt)
+            return response
+
+        except Exception as e:
+            logging.error("Error during LLM response", exc_info=True)
+            raise
+
+    def safe_response_with_retry(self, content: str, retries=3, wait_time=10) -> str:
+        for attempt in range(1, retries + 1):
+            try:
+                logging.info(f"Attempt {attempt}/{retries}")
+                return self.response(content)
+            except Exception as e:
+                logging.warning(f"⚠️ Attempt {attempt} failed. Retrying in {wait_time}s...\nError: {e}")
+                time.sleep(wait_time)
+        raise RuntimeError("❌ All retries failed for LLM inference.")
+
+    def list_of_answer(self) -> List[str]:
+        try:
+            answer = self.extracted_data()
+            final = []
+            for i in range(len(answer)):
+                logging.info(f"Processing table {i + 1}/{len(answer)}")
+                result = self.safe_response_with_retry(answer[i])
+                final.append(result)
+            logging.info("Completed processing list of answers.")
+            return final
+        except Exception as e:
+            logging.error("Error in list_of_answer", exc_info=True)
+            raise
+
+    def extract_and_combine_json(self, text_list: List[str]) -> Dict[str, Any]:
+        try:
+            pattern = r'```json\n({.*?})\n```'
+            combined_json = {}
+            for text in text_list:
+                json_strings = re.findall(pattern, text, re.DOTALL)
+                for json_str in json_strings:
+                    try:
+                        json_obj = json.loads(json_str)
+                        # Merge with combined_json
+                        combined_json.update(json_obj)
+                    except json.JSONDecodeError as e:
+                        logging.warning(f"Failed to decode JSON: {e}")
+                        # Try without the pattern match if it fails
+                        try:
+                            json_obj = json.loads(text)
+                            combined_json.update(json_obj)
+                        except:
+                            logging.warning("Failed to decode even without pattern matching")
+            return combined_json
+        except Exception as e:
+            logging.error(f"Error in extract_and_combine_json: {e}", exc_info=True)
+            return {}
+
+    def key_value_pair(self) -> Dict[str, Any]:
+        try:
+            list_of_text = self.list_of_answer()
+            combined_json = self.extract_and_combine_json(list_of_text)
+            logging.info("Successfully combined JSON objects.")
+            return combined_json
+        except Exception as e:
+            logging.error(f"Error in key_value_pair: {e}", exc_info=True)
+            return {}
+
+
+# Function to extract tables and save as JSON
+def extract_tables(pdf_path, timestamp):
+    logging.info(f"Starting table extraction for {pdf_path}")
+    try:
+        # Create output directory
+        output_dir = os.path.join("static", "extracted")
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Initialize extractor
+        extractor = TableExtractor(pdf_path)
+
+        # Extract table data
+        combined_json = extractor.key_value_pair()
+
+        # Save to JSON file
+        json_path = os.path.join(output_dir, f"extracted_{timestamp}.json")
+        with open(json_path, "w") as f:
+            json.dump(combined_json, f, indent=2)
+
+        logging.info(f"Table extraction complete. Results saved to {json_path}")
+
+        # Clean up temp images
+        if os.path.exists("temp_images"):
+            shutil.rmtree("temp_images")
+
+        return json_path
+    except Exception as e:
+        logging.error(f"Table extraction failed: {e}", exc_info=True)
+        return None
+
+
 app = Flask(__name__, static_folder="static", template_folder="templates")
 CORS(app)
 
@@ -68,23 +289,14 @@ CORS(app)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
 processing_status = {}  # Dictionary to track processing status by ID
 
-
 # Global variable to store latest extracted table context
 latest_table_context = ""
-
 
 os.environ["HUGGINGFACEHUB_API_TOKEN"] = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 persist_directory = "docs/chroma_rag/"
 os.makedirs(persist_directory, exist_ok=True)
-if not os.path.exists(persist_directory):
-    chroma_db = Chroma.from_documents(
-        documents=load_docs(),
-        embedding=embeddings,
-        persist_directory=persist_directory
-    )
-    chroma_db.persist()
 
 try:
     chroma_db = Chroma(
@@ -107,8 +319,12 @@ except Exception as e:
 prompt = PromptTemplate(
     input_variables=["context", "question"],
     template="""
-You are KuberAI, a friendly and knowledgeable financial assistant. Your job is to help users understand finance.
-Use the context below to answer the user's question. Be factual, concise, and explain in simple terms.
+You are KuberAI, a friendly and knowledgeable financial assistant. 
+Your job is to help users understand finance concepts in simple terms.
+
+- If the user asks for a concept (like "equity financing"), explain **generally** without mentioning specific companies like Microsoft or Apple unless directly asked.
+- If the user asks about a specific company, then you can use examples.
+- Keep answers factual, simple, and to the point.
 
 Context:
 {context}
@@ -120,7 +336,8 @@ Answer:
 """
 )
 
-llm = HuggingFaceHub(repo_id="mistralai/Mistral-7B-Instruct-v0.1", model_kwargs={"temperature": 0.1, "max_new_tokens": 512})
+llm = HuggingFaceHub(repo_id="mistralai/Mistral-7B-Instruct-v0.1",
+                     model_kwargs={"temperature": 0.1, "max_new_tokens": 512})
 qa_chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever, return_source_documents=False,
                                        chain_type_kwargs={"prompt": prompt})
 
@@ -156,13 +373,12 @@ def upload_pdf():
     }
 
     def run_extraction():
-        print(f"[THREAD] 🟡 Entered thread. Attempting to import and call extractor...")
         try:
-            from extractor import extract_tables
-            print(f"[THREAD] Running extract_tables for {pdf_path}")
+            # Call our extract_tables function
+            logging.info(f"Running extract_tables for {filepath}")
             json_path = extract_tables(filepath, timestamp)
             global latest_table_context
-            print("Running Ma Boy")
+
             if json_path and os.path.exists(json_path):
                 with open(json_path, "r") as f:
                     data = json.load(f)
@@ -172,20 +388,20 @@ def upload_pdf():
                 processing_status[task_id]["status"] = "complete"
                 processing_status[task_id]["message"] = "PDF processing complete. You can now ask questions about it."
                 processing_status[task_id]["completion_time"] = time.time()
-                print("[THREAD] Extraction successful, context ready.")
+                logging.info("Extraction successful, context ready.")
             else:
                 # Update status to error
-                print("[THREAD] JSON path not found or empty.")
+                logging.error("JSON path not found or empty.")
                 processing_status[task_id]["status"] = "error"
                 processing_status[task_id]["message"] = "Failed to process PDF. No data extracted."
                 processing_status[task_id]["completion_time"] = time.time()
         except Exception as e:
-            print(f"Extraction error: {str(e)}")
+            logging.error(f"Extraction error: {str(e)}")
             processing_status[task_id]["status"] = "error"
             processing_status[task_id]["message"] = f"Error processing PDF: {str(e)}"
             processing_status[task_id]["completion_time"] = time.time()
 
-    Thread(target=run_extraction).start()  # This line was causing the error
+    Thread(target=run_extraction).start()
     print(f"Started extraction thread for task ID: {task_id}")
     return jsonify({
         "status": "processing",
@@ -206,35 +422,50 @@ def ask_question():
     try:
         data = request.get_json()
         question = data.get("question", "").strip()
+
         if not question:
             return jsonify({"status": "error", "message": "Empty question."}), 400
 
+        # 🧠 Greeting Check
         greetings = ["hi", "hello", "hey", "yo", "what's up"]
-        if question.lower() in greetings:
+        if any(greet in question.lower() for greet in greetings):
             return jsonify({
                 "status": "success",
-                "answer": "Hey there! I'm KuberAI, your financial assistant. Ask me about stocks, investing, or the economy 💹"
+                "answer": "Hey there! I'm KuberAI, your financial assistant. Ask me about stocks, investing, or finance 💬"
             })
 
-        # Build context if PDF was uploaded
-        # STEP 1: Get Chroma-based RAG context
+        # 🧠 Very short or vague questions check
+        if len(question.split()) <= 3 or any(x in question.lower() for x in ["who am i", "what am i", "tell me", "guess", "what is this"]):
+            return jsonify({
+                "status": "success",
+                "answer": "I'm a financial assistant! Could you ask me something about stocks, investments, mutual funds, or finance?"
+            })
+
+        # 🧠 Financial keyword check
+        finance_keywords = ["stock", "mutual fund", "bond", "crypto", "investment", "portfolio", "equity", "debt", "etf", "finance", "returns", "risk", "dividend"]
+        if not any(fin_word in question.lower() for fin_word in finance_keywords):
+            # 🚨 No strong financial words detected
+            return jsonify({
+                "status": "success",
+                "answer": "I'm specialized in finance and investments 📈. Could you please ask me something related to stocks, portfolios, crypto, or financial planning?"
+            })
+
+        # 🚀 Only real finance questions reach here
+
+        # Get context
         rag_docs = retriever.get_relevant_documents(question)
         rag_context = "\n".join([doc.page_content for doc in rag_docs])
 
-        # STEP 2: Combine with PDF-extracted table context
         if latest_table_context:
             combined_context = latest_table_context + "\n\n" + rag_context
         else:
             combined_context = rag_context
 
-        # STEP 3: Inject into prompt
         full_prompt = prompt.format(context=combined_context, question=question)
 
-        # 🔥 Ask Together AI's LLaMA 3.3 70B
         response = get_together_response(full_prompt)
         answer = response.strip()
 
-        # ✂️ Clean any boilerplate
         if "Answer:" in answer:
             answer = answer.split("Answer:")[-1].strip()
         if "Question:" in answer:
@@ -276,4 +507,6 @@ if __name__ == "__main__":
     # Create required directories
     os.makedirs("uploads", exist_ok=True)
     os.makedirs("docs/chroma_rag", exist_ok=True)
+    os.makedirs("static/extracted", exist_ok=True)
+    os.makedirs("temp_images", exist_ok=True)
     app.run(debug=True)
