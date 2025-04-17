@@ -55,6 +55,18 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 together_client = Together(api_key=os.environ.get("TOGETHER_API_KEY"))
 
+from intent_classifier import IntentClassifier
+
+# Initialize the classifier with your pre-trained model
+intent_classifier = IntentClassifier()
+
+# Path to your pre-trained model file
+model_path = os.path.join("kuberai_intent_classifier.pkl")
+
+# Load the pre-trained model
+intent_classifier.load_model(model_path)
+print("Pre-trained intent classifier loaded successfully")
+
 
 def ask_llama3_70b(prompt):
     model = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
@@ -417,6 +429,9 @@ def check_processing(task_id):
     return jsonify({"status": "not_found", "message": "Processing task not found"}), 404
 
 
+from flask import request, jsonify
+import re
+
 @app.route("/api/ask", methods=["POST"])
 def ask_question():
     try:
@@ -426,62 +441,103 @@ def ask_question():
         if not question:
             return jsonify({"status": "error", "message": "Empty question."}), 400
 
-        # 🧠 Greeting Check
-        greetings = ["hi", "hello", "hey", "yo", "what's up"]
-        if any(greet in question.lower() for greet in greetings):
+        # Classify the intent using the pre-trained model
+        intent, confidence = intent_classifier.classify(question)
+        print(f"Detected intent: {intent} (confidence: {confidence:.2f})")
+        
+        # Apply confidence threshold for more reliable predictions
+        # If confidence is too low, fall back to a more general approach
+        if confidence < 0.6:
+            # For low confidence predictions, use keyword detection as fallback
+            clean_question = re.sub(r'[^\w\s]', '', question.lower())
+            
+            # Check for finance keywords
+            finance_keywords = ["stock", "mutual fund", "bond", "crypto", "investment", 
+                               "portfolio", "equity", "debt", "etf", "finance", "returns", 
+                               "risk", "dividend", "interest", "compound", "market"]
+            
+            # Check for document keywords
+            document_keywords = ["document", "pdf", "report", "upload", "table", "file", 
+                                "extract", "statement"]
+            
+            if any(keyword in clean_question for keyword in finance_keywords):
+                intent = "FINANCE_QUESTION"
+                print("Low confidence - falling back to FINANCE_QUESTION based on keywords")
+            elif any(keyword in clean_question for keyword in document_keywords):
+                intent = "DOCUMENT_QUESTION"
+                print("Low confidence - falling back to DOCUMENT_QUESTION based on keywords")
+            # Other fallbacks can be added here
+        
+        # Handle based on intent
+        if intent == "GREETING":
             return jsonify({
                 "status": "success",
-                "answer": "Hey there! I'm KuberAI, your financial assistant. Ask me about stocks, investing, or finance 💬"
+                "answer": "Hey there! I'm KuberAI, your financial assistant. Ask me about stocks, investing, finance, or upload a document! 📑"
             })
-
-        # 🧠 Very short or vague questions check
-        if len(question.split()) <= 3 or any(x in question.lower() for x in ["who am i", "what am i", "tell me", "guess", "what is this"]):
+            
+        elif intent == "HELP":
             return jsonify({
                 "status": "success",
-                "answer": "I'm a financial assistant! Could you ask me something about stocks, investments, mutual funds, or finance?"
+                "answer": "I'm KuberAI, your financial assistant. Here's how you can use me:\n\n"
+                "• Ask me any finance-related questions\n"
+                "• Upload financial documents (like PDFs) to get insights\n"
+                "• Ask questions about data in uploaded documents\n"
+                "• Learn about investment concepts, terminology, and strategies"
             })
-
-        # 🧠 Financial keyword check
-        finance_keywords = ["stock", "mutual fund", "bond", "crypto", "investment", "portfolio", "equity", "debt", "etf", "finance", "returns", "risk", "dividend"]
-        if not any(fin_word in question.lower() for fin_word in finance_keywords):
-            # 🚨 No strong financial words detected
+            
+        elif intent == "OFF_TOPIC":
             return jsonify({
                 "status": "success",
                 "answer": "I'm specialized in finance and investments 📈. Could you please ask me something related to stocks, portfolios, crypto, or financial planning?"
             })
-
-        # 🚀 Only real finance questions reach here
-
-        # Get context
-        rag_docs = retriever.get_relevant_documents(question)
-        rag_context = "\n".join([doc.page_content for doc in rag_docs])
-
-        if latest_table_context:
-            combined_context = latest_table_context + "\n\n" + rag_context
-        else:
-            combined_context = rag_context
-
-        full_prompt = prompt.format(context=combined_context, question=question)
-
-        response = get_together_response(full_prompt)
-        answer = response.strip()
-
-        if "Answer:" in answer:
-            answer = answer.split("Answer:")[-1].strip()
-        if "Question:" in answer:
-            answer = answer.split("Question:")[0].strip()
-        answer = answer.replace("KuberAI:", "").strip()
-
-        return jsonify({"status": "success", "answer": answer})
+            
+        elif intent == "DOCUMENT_QUESTION":
+            if latest_table_context:
+                # Use the document context with the retriever
+                rag_docs = retriever.get_relevant_documents(question)
+                rag_context = "\n".join([doc.page_content for doc in rag_docs])
+                combined_context = latest_table_context + "\n\n" + rag_context
+                
+                full_prompt = prompt.format(context=combined_context, question=question)
+                response = get_together_response(full_prompt)
+                answer = response.strip()
+                
+                if "Answer:" in answer:
+                    answer = answer.split("Answer:")[-1].strip()
+                if "Question:" in answer:
+                    answer = answer.split("Question:")[0].strip()
+                answer = answer.replace("KuberAI:", "").strip()
+                
+                return jsonify({"status": "success", "answer": answer})
+            else:
+                return jsonify({
+                    "status": "success",
+                    "answer": "I don't see any uploaded documents. Would you like to upload a financial document for me to analyze?"
+                })
+                
+        elif intent == "FINANCE_QUESTION":
+            # Standard finance question handling with RAG
+            rag_docs = retriever.get_relevant_documents(question)
+            rag_context = "\n".join([doc.page_content for doc in rag_docs])
+            
+            full_prompt = prompt.format(context=rag_context, question=question)
+            response = get_together_response(full_prompt)
+            answer = response.strip()
+            
+            if "Answer:" in answer:
+                answer = answer.split("Answer:")[-1].strip()
+            if "Question:" in answer:
+                answer = answer.split("Question:")[0].strip()
+            answer = answer.replace("KuberAI:", "").strip()
+            
+            return jsonify({"status": "success", "answer": answer})
 
     except Exception as e:
-        print(f"Error in QA chain: {str(e)}")
+        print(f"Error processing question: {str(e)}")
         return jsonify({
             "status": "error",
             "message": "I had trouble processing that question. Please try rephrasing."
         }), 500
-
-
 
 # Clean up old processing statuses periodically
 def cleanup_processing_status():

@@ -15,3 +15,5 @@ static/extracted/*.json
 *.bin
 test_env/
 old/
+commands.txt
+testenv/
