@@ -54,6 +54,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 together_client = Together(api_key=os.environ.get("TOGETHER_API_KEY"))
+huggingfacehub_api_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 
 from intent_classifier import IntentClassifier
 
@@ -351,7 +352,7 @@ Answer:
 """
 )
 
-llm = HuggingFaceHub(repo_id="mistralai/Mistral-7B-Instruct-v0.1",
+llm = HuggingFaceHub(repo_id="mistralai/Mistral-7B-Instruct-v0.1",huggingfacehub_api_token=huggingfacehub_api_token,
                      model_kwargs={"temperature": 0.1, "max_new_tokens": 512})
 qa_chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever, return_source_documents=False,
                                        chain_type_kwargs={"prompt": prompt})
