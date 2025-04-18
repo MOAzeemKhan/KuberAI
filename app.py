@@ -362,13 +362,13 @@ Answer:
                      model_kwargs={"temperature": 0.1, "max_new_tokens": 512})'''
 if not huggingfacehub_api_token:
     logging.warning("HUGGINGFACEHUB_API_TOKEN is not set! HuggingFaceHub functionality will not work.")
-    # Provide a fallback solution or raise a clear error
-    llm = None  # Handle this case appropriately in your application
+    raise EnvironmentError("Missing HuggingFace token. Set the environment variable HUGGINGFACEHUB_API_TOKEN.")
 else:
     try:
         llm = HuggingFaceEndpoint(
             repo_id="mistralai/Mistral-7B-Instruct-v0.1",
             task="text-generation",
+            huggingfacehub_api_token=huggingfacehub_api_token,
             temperature=0.5,
             max_new_tokens=512
         )
@@ -377,6 +377,7 @@ else:
         logging.error(f"Failed to initialize HuggingFaceHub: {e}")
         # Fall back to a different LLM if possible
         llm = None  # Handle this case appropriately
+        raise
 
 qa_chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever, return_source_documents=False,
                                        chain_type_kwargs={"prompt": prompt})
