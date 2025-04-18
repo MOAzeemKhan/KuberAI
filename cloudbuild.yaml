@@ -1,0 +1,23 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/capstone-457201/kuberai', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/capstone-457201/kuberai']
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      [
+        'run',
+        'deploy',
+        'kuberai',
+        '--image',
+        'gcr.io/capstone-457201/kuberai',
+        '--region',
+        'asia-south1',
+        '--platform',
+        'managed',
+        '--allow-unauthenticated',
+        '--memory=1Gi',
+        '--set-env-vars',
+        'TOGETHER_API_KEY=${_TOGETHER_API_KEY},HUGGINGFACEHUB_API_TOKEN=${_HUGGINGFACEHUB_API_TOKEN}'
+      ]

@@ -304,8 +304,6 @@ processing_status = {}  # Dictionary to track processing status by ID
 # Global variable to store latest extracted table context
 latest_table_context = ""
 
-os.environ["HUGGINGFACEHUB_API_TOKEN"] = os.getenv("HUGGINGFACEHUB_API_TOKEN")
-
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 persist_directory = "docs/chroma_rag/"
 os.makedirs(persist_directory, exist_ok=True)
@@ -565,4 +563,4 @@ if __name__ == "__main__":
     os.makedirs("docs/chroma_rag", exist_ok=True)
     os.makedirs("static/extracted", exist_ok=True)
     os.makedirs("temp_images", exist_ok=True)
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
