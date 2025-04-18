@@ -2,6 +2,7 @@ print("STEP 1: Starting app.py")
 from flask import Flask, jsonify, render_template, request, session
 
 print("STEP 2: Flask imported")
+from flask import redirect
 
 from flask_cors import CORS
 import os
@@ -33,9 +34,10 @@ from langchain_community.vectorstores import Chroma
 print("STEP 4: Chroma imported")
 
 from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEndpoint
 
 print("STEP 5: Embeddings imported")
-
+from langchain_huggingface import HuggingFaceEndpoint
 from langchain.chains import RetrievalQA, LLMChain
 from langchain.prompts import PromptTemplate
 from langchain_community.llms import HuggingFaceHub
@@ -300,7 +302,11 @@ CORS(app)
 
 @app.route("/", methods=["GET"])
 def home():
-    return "✅ KuberAI is Running Successfully!"
+    return redirect("/dashboard")
+
+@app.route("/health", methods=["GET"])
+def health_check():
+    return "✅ Health check passed. KuberAI backend running.", 200
 
 
 # App configuration
@@ -352,21 +358,37 @@ Answer:
 """
 )
 
-llm = HuggingFaceHub(repo_id="mistralai/Mistral-7B-Instruct-v0.1",huggingfacehub_api_token=huggingfacehub_api_token,
-                     model_kwargs={"temperature": 0.1, "max_new_tokens": 512})
+'''llm = HuggingFaceHub(repo_id="mistralai/Mistral-7B-Instruct-v0.1",huggingfacehub_api_token=huggingfacehub_api_token,
+                     model_kwargs={"temperature": 0.1, "max_new_tokens": 512})'''
+if not huggingfacehub_api_token:
+    logging.warning("HUGGINGFACEHUB_API_TOKEN is not set! HuggingFaceHub functionality will not work.")
+    # Provide a fallback solution or raise a clear error
+    llm = None  # Handle this case appropriately in your application
+else:
+    try:
+        llm = HuggingFaceEndpoint(
+            repo_id="mistralai/Mistral-7B-Instruct-v0.1",
+            task="text-generation",
+            temperature=0.5,
+            max_new_tokens=512
+        )
+
+    except Exception as e:
+        logging.error(f"Failed to initialize HuggingFaceHub: {e}")
+        # Fall back to a different LLM if possible
+        llm = None  # Handle this case appropriately
+
 qa_chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever, return_source_documents=False,
                                        chain_type_kwargs={"prompt": prompt})
 
 
-@app.route("/")
-def landing():
+@app.route("/dashboard", methods=["GET"])
+def landing_page():
     return render_template("landing.html")
-
 
 @app.route("/index")
 def dashboard():
     return render_template("index.html")
-
 
 @app.route("/upload_pdf", methods=["POST"])
 def upload_pdf():
@@ -569,4 +591,4 @@ if __name__ == "__main__":
     os.makedirs("docs/chroma_rag", exist_ok=True)
     os.makedirs("static/extracted", exist_ok=True)
     os.makedirs("temp_images", exist_ok=True)
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
