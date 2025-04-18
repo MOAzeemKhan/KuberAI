@@ -1,8 +1,13 @@
 steps:
+  # Step 1: Build Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/capstone-457201/kuberai', '.']
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/kuberai', '.']
+
+  # Step 2: Push Docker image to Google Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/capstone-457201/kuberai']
+    args: ['push', 'gcr.io/$PROJECT_ID/kuberai']
+
+  # Step 3: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -11,13 +16,17 @@ steps:
         'deploy',
         'kuberai',
         '--image',
-        'gcr.io/capstone-457201/kuberai',
+        'gcr.io/$PROJECT_ID/kuberai',
         '--region',
         'asia-south1',
         '--platform',
         'managed',
+        '--memory',
+        '2Gi',
         '--allow-unauthenticated',
-        '--memory=1Gi',
         '--set-env-vars',
         'TOGETHER_API_KEY=${_TOGETHER_API_KEY},HUGGINGFACEHUB_API_TOKEN=${_HUGGINGFACEHUB_API_TOKEN}'
       ]
+
+images:
+  - 'gcr.io/$PROJECT_ID/kuberai'

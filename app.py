@@ -297,6 +297,11 @@ def extract_tables(pdf_path, timestamp):
 app = Flask(__name__, static_folder="static", template_folder="templates")
 CORS(app)
 
+@app.route("/", methods=["GET"])
+def home():
+    return "✅ KuberAI is Running Successfully!"
+
+
 # App configuration
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
 processing_status = {}  # Dictionary to track processing status by ID
