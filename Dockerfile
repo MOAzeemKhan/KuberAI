@@ -11,7 +11,6 @@ WORKDIR /app
 COPY . .
 
 # Install system dependencies
-# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     tesseract-ocr \
@@ -19,7 +18,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libmagic-dev \
     libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxrender1 \
+    libxext6 \
+    libgl1-mesa-glx \
     && rm -rf /var/lib/apt/lists/*
+
 
 
 # Install Python dependencies
