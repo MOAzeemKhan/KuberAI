@@ -18,3 +18,4 @@ old/
 commands.txt
 testenv/
 .DS_Store
+rl-env/
