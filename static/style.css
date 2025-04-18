@@ -1,8 +1,38 @@
+/* Enhanced Chat Interface with Slideable Panels */
+
 :root {
   --gold: #FFC800;
   --light-bg: #fffef7;
   --gray: #444;
   --card-bg: #fffbea;
+  --primary-color: #2a68e5;
+  --primary-hover: #1d54c6;
+  --secondary-color: #f0f4fd;
+  --text-color: #333;
+  --bot-bg: #f0f4fd;
+  --user-bg: #d9f4ff;
+  --border-color: #e0e0e0;
+  --hover-color: #2459c5;
+  --error-color: #ff5252;
+  --success-color: #4caf50;
+  --transition-speed: 0.3s;
+}
+
+/* Dark mode variables */
+.dark-mode {
+  --gold: #ffcd33;
+  --light-bg: #1a1a1a;
+  --card-bg: #252525;
+  --gray: #e0e0e0;
+  --primary-color: #4a7be8;
+  --primary-hover: #64a6ff;
+  --secondary-color: #1e293b;
+  --text-color: #f0f0f0;
+  --bot-bg: #1e293b;
+  --user-bg: #083344;
+  --border-color: #444;
+  --hover-color: #64a6ff;
+  --body-bg: #0f172a;
 }
 
 body {
@@ -12,63 +42,124 @@ body {
   color: var(--gray);
   font-family: 'Inter', sans-serif;
   margin: 0;
-}
-/* Add this to your CSS file (create one if needed) */
-.loading-dots {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 30px;
+  overflow: hidden;
 }
 
-.loading-dots .dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin: 0 5px;
-  background-color: #007bff;
-  border-radius: 50%;
-  opacity: 0.6;
-  animation: dot-pulse 1.5s infinite ease-in-out;
-}
-
-.loading-dots .dot:nth-child(2) {
-  animation-delay: 0.5s;
-}
-
-.loading-dots .dot:nth-child(3) {
-  animation-delay: 1s;
-}
-
-@keyframes dot-pulse {
-  0%, 100% {
-    opacity: 0.2;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
-}
-
-.message.loading {
-  padding: 10px 15px;
-  background-color: #f1f1f1;
-  border-radius: 15px;
-  margin-bottom: 10px;
-  max-width: 80%;
-  align-self: flex-start;
-}
-
-/* Sidebar */
+/* Improved Slideable Sidebar */
 .sidebar {
-  width: 200px;
+  width: 250px;
   background: white;
   border-right: 1px solid #eee;
   padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+  height: 100vh;
+  transition: left 0.3s ease; /* Change from transform to left */
+}
+
+.sidebar.collapsed {
+  left: -250px; /* Move off screen instead of using transform */
+}
+
+/* Sidebar Toggle Button - Always Visible */
+.sidebar-toggle-btn {
+  position: fixed;
+  left: 260px; /* Default position when sidebar is open */
+  top: 10px;
+  width: 40px;
+  height: 40px;
+  background: var(--gold);
+  border: none;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 101;
+  transition: left 0.3s ease;
+}
+
+.sidebar.collapsed ~ .sidebar-toggle-btn {
+  left: 10px;
+}
+
+/* Sidebar Logo and Toggle */
+.sidebar-top {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.logo-text {
+  color: var(--gold);
+  font-weight: 600;
+  margin: 0;
+}
+
+.toggle-btn {
+  display: none; /* Hide the original toggle button */
+}
+
+/* Navigation Links */
+.nav-links,
+.logout {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.nav-item:hover {
+  background-color: rgba(255, 200, 0, 0.1);
+}
+
+.nav-item.active {
+  background-color: rgba(255, 200, 0, 0.2);
+  font-weight: 500;
+}
+
+.nav-item .icon {
+  width: 20px;
+  text-align: center;
+  font-size: 18px;
+  color: var(--gold);
+}
+
+/* Updated Main Layout */
+.main {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+.main {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+.sidebar {
+  width: 250px;
+  flex-shrink: 0;
   transition: width 0.3s ease;
 }
 
@@ -76,262 +167,844 @@ body {
   width: 60px;
 }
 
-.logo-text {
-  color: var(--gold);
-  font-weight: 600;
-  margin-left: 10px;
-  transition: opacity 0.3s ease;
+.recommendation-area {
+  width: 320px;
+  flex-shrink: 0;
+  transition: width 0.3s ease;
 }
 
-.sidebar.collapsed .logo-text {
-  opacity: 0;
+.recommendation-area.collapsed {
+  width: 0;
 }
 
-.nav-links,
-.logout {
+.chat-area {
+  flex-grow: 1;
+  flex-shrink: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  overflow: hidden;
+  background: white;
 }
 
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 16px;
-  cursor: pointer;
+/* Chat Input */
+.chat-input {
+  position: fixed;
+  bottom: 0;
+  left: 250px;
+  right: 320px;
+  transition: left 0.3s ease, right 0.3s ease;
 }
 
-.label {
-  transition: opacity 0.3s ease;
+.sidebar.collapsed ~ .main .chat-input {
+  left: 60px;
 }
 
-.sidebar.collapsed .label {
-  opacity: 0;
-  pointer-events: none;
+.main .recommendation-area.collapsed ~ .chat-input {
+  right: 0;
 }
 
-.toggle-btn {
-  background: var(--gold);
-  border: none;
-  color: white;
-  padding: 6px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-bottom: 20px;
+.sidebar.collapsed ~ .main .recommendation-area.collapsed ~ .chat-input {
+  left: 60px;
+  right: 0;
 }
 
-/* Main Layout */
-.main {
+/* Quick Actions */
+.quick-actions {
+  position: fixed;
+  bottom: 70px;
+  left: 250px;
+  right: 320px;
+  transition: left 0.3s ease, right 0.3s ease;
+}
+
+.sidebar.collapsed ~ .main .quick-actions {
+  left: 60px;
+}
+
+.main .recommendation-area.collapsed ~ .quick-actions {
+  right: 0;
+}
+
+.sidebar.collapsed ~ .main .recommendation-area.collapsed ~ .quick-actions {
+  left: 60px;
+  right: 0;
+}
+
+/* Chat Box that scrolls */
+#chat-box {
   flex: 1;
-  display: flex;
-  gap: 30px;
-  padding: 30px;
-}
-  
-  .chat-area {
-    flex: 6;
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 0 0 5px rgba(0,0,0,0.05);
-  }
-  
-  .chat-input {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-  }
-  
-  .chat-input input {
-    flex: 1;
-    padding: 10px;
-    border-radius: 20px;
-    border: 1px solid #ccc;
-  }
-  
-  .chat-input button {
-    background: var(--gold);
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-  }
-  
-  .recommendation-area {
-    flex: 4;
-    background-color: var(--card-bg);
-    border-radius: 12px;
-    padding: 25px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .recommendation-area h3 {
-    margin-bottom: 10px;
-    font-size: 18px;
-  }
-  
-  .stock-card {
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  }
-  
-  .confidence-bar {
-    height: 8px;
-    background-color: #eee;
-    border-radius: 5px;
-    margin: 8px 0;
-  }
-  
-  .confidence-fill {
-    height: 100%;
-    background-color: #4caf50;
-  }
-  
-  .input-section {
-    margin-top: 25px;
-    padding-top: 15px;
-    border-top: 1px solid #ccc;
-  }
-  
-  .input-label {
-    font-weight: 600;
-    margin: 15px 0 5px;
-  }
-  
-  .input-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  
-  .pill-button {
-    padding: 6px 14px;
-    border-radius: 30px;
-    border: 1px solid var(--gold);
-    background-color: white;
-    color: var(--gold);
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 14px;
-  }
-  
-  .pill-button.selected {
-    background-color: var(--gold);
-    color: white;
-  }
-  
-  .slider-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  .slider-container input[type="range"] {
-    width: 160px;
-  }
-  
-  .slider-value {
-    min-width: 90px;
-    font-weight: 500;
-  }
-  
-  .horizon-hint {
-    font-size: 12px;
-    color: #888;
-    margin-left: 10px;
-  }
-
-  .recommend-btn {
-    padding: 12px 24px;
-    font-size: 15px;
-    font-weight: 500;
-    background-color: var(--gold);
-    border: none;
-    border-radius: 25px;
-    color: white;
-    cursor: pointer;
-    transition: background 0.2s ease;
-  }
-  
-  .recommend-btn:hover {
-    background-color: #e6b200;
-  }
-
-/* Chat Messages - Bot and User Styles */
-.message {
-  display: flex;
-  flex-direction: column; /* Added to stack name + message vertically */
-  margin-bottom: 12px;
-  max-width: 70%;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08); /* Smoother shadow */
-}
-
-.message > div:first-child {
-  font-weight: 600;
-  margin-bottom: 6px; /* Breathing space between Name and Message */
-}
-
-.message ul {
-  padding-left: 20px;
-  margin-top: 8px;
-}
-
-.message li {
-  margin-bottom: 6px;
-}
-
-/* Bot bubble */
-.message.bot {
-  align-self: flex-start;
+  overflow-y: auto;
+  padding: 20px;
   background-color: #f9f9f9;
-  border-radius: 15px 15px 15px 5px;
-  padding: 12px 16px;
-  color: #333;
-  font-size: 15px;
+  padding-bottom: 100px; /* space for fixed elements */
 }
 
-/* User bubble */
-.message.user {
-  align-self: flex-end;
-  background-color: var(--gold);
-  color: white;
-  border-radius: 15px 15px 5px 15px;
-  padding: 12px 16px;
-  font-size: 15px;
+.dark-mode #chat-box {
+  background-color: #0f1729;
 }
 
-/* Chat Input Box - Bigger and Neater */
+/* Fixed Chat Input Area */
+.chat-input {
+  display: flex;
+  gap: 10px;
+  padding: 15px 20px;
+  background-color: white;
+  border-top: 1px solid #eee;
+  position: fixed;
+  bottom: 0;
+  left: 250px; /* default sidebar open */
+  right: 320px; /* default recommendation panel open */
+  z-index: 50;
+  box-sizing: border-box;
+  transition: left 0.3s ease, right 0.3s ease;
+}
+
+/* Adjust input when panels change */
+.sidebar.collapsed ~ .main .chat-input {
+  left: 60px;
+}
+
+.sidebar:not(.collapsed) ~ .main .recommendation-area.collapsed ~ .chat-input {
+  right: 0;
+  left: 250px;
+}
+
+.sidebar.collapsed ~ .main .recommendation-area.collapsed ~ .chat-input {
+  left: 60px;
+  right: 0;
+}
+
+.recommendation-area:not(.collapsed) ~ .chat-input {
+  right: 320px;
+}
+
+/* Chat input field */
 .chat-input input {
   flex: 1;
-  padding: 15px 20px; /* Increased padding */
-  border-radius: 25px;
-  border: 1px solid #ccc;
-  font-size: 16px;
+  padding: 12px 20px;
+  border-radius: 30px;
+  border: 1px solid #ddd;
+  font-size: 15px;
+  outline: none;
+  transition: border 0.2s;
 }
 
-/* Send Button */
+.chat-input input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(255, 200, 0, 0.1);
+}
+
+/* Send button */
 .chat-input button {
   background: var(--gold);
   color: white;
   border: none;
   padding: 12px 20px;
-  border-radius: 25px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: 30px;
   cursor: pointer;
-  transition: background 0.3s ease;
+  font-weight: 500;
+  transition: background 0.2s;
 }
 
 .chat-input button:hover {
   background-color: #e6b200;
+}
+
+/* Quick Actions fixed at bottom above input */
+.quick-actions {
+  position: fixed;
+  bottom: 70px;
+  left: 250px; /* Default left when sidebar is open */
+  right: 320px; /* Default right when recommendation panel is open */
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  z-index: 49;
+  transition: left 0.3s ease, right 0.3s ease;
+}
+
+/* Adjust quick actions position when panels change */
+.sidebar.collapsed ~ .main .quick-actions {
+  left: 0;
+}
+
+.sidebar:not(.collapsed) ~ .main .recommendation-area.collapsed ~ .quick-actions {
+  left: 250px;
+  right: 0;
+}
+
+.sidebar.collapsed ~ .main .recommendation-area.collapsed ~ .quick-actions {
+  left: 0;
+  right: 0;
+}
+
+.recommendation-area:not(.collapsed) ~ .quick-actions {
+  right: 320px;
+}
+
+.quick-actions h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 16px;
+  color: var(--gray);
+}
+
+.quick-action-btn {
+  background-color: white;
+  color: var(--gold);
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  padding: 8px 16px;
+  margin: 5px 8px 5px 0;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.quick-action-btn:hover {
+  background-color: var(--gold);
+  color: white;
+  border-color: var(--gold);
+}
+
+/* Chat Controls - Pill Shaped Buttons */
+.chat-controls {
+  display: flex;
+  gap: 10px;
+  position: fixed;
+  top: 15px;
+  right: 335px; /* Default position when recommendation panel is open */
+  z-index: 51;
+  transition: right 0.3s ease;
+}
+
+.recommendation-area.collapsed ~ .chat-controls {
+  right: 15px;
+}
+
+.action-button {
+  background-color: white;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 20px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.action-button:hover {
+  background-color: var(--gold);
+  color: white;
+}
+
+/* Settings Dropdown */
+.settings-dropdown {
+  position: relative;
+}
+
+.settings-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.settings-btn:hover {
+  background-color: var(--gold);
+  color: white;
+}
+
+.settings-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  padding: 10px;
+  min-width: 180px;
+  display: none;
+  z-index: 100;
+}
+
+.settings-menu.active {
+  display: block;
+}
+
+.settings-item {
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.settings-item:hover {
+  background-color: rgba(255, 200, 0, 0.1);
+}
+
+/* Recommendation Area - Made Slideable */
+.recommendation-area {
+  position: relative;
+  width: 300px;
+  transition: width 0.3s ease, transform 0.3s ease;
+  background-color: var(--recommendation-bg);
+}
+
+.recommendation-area.collapsed {
+  transform: translateX(100%);
+  width: 0;
+}
+
+.recommendation-toggle {
+  position: absolute;
+  top: 20px;
+  left: -25px; /* Slightly outside to the left so visible even when collapsed */
+  width: 40px;
+  height: 40px;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: left 0.3s ease;
+}
+
+.recommendation-area.collapsed ~ .recommendation-toggle {
+  right: 10px;
+}
+
+.recommendation-area h3 {
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+/* Message Styling */
+.message {
+  margin-bottom: 16px;
+  max-width: 75%;
+  display: flex;
+  flex-direction: column;
+}
+
+.message > div:first-child {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.message.bot {
+  align-self: flex-start;
+  background-color: #f0f4fd;
+  border-radius: 18px 18px 18px 4px;
+  padding: 14px 18px;
+  color: #333;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.message.user {
+  align-self: flex-end;
+  background-color: var(--gold);
+  color: #333;
+  border-radius: 18px 18px 4px 18px;
+  padding: 14px 18px;
+  margin-left: auto;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Typing Indicator */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+}
+
+.typing-dots {
+  display: flex;
+  align-items: center;
+}
+
+.typing-dots .dot {
+  width: 8px;
+  height: 8px;
+  background-color: #777;
+  border-radius: 50%;
+  margin: 0 3px;
+  animation: typing-pulse 1.2s infinite ease-in-out;
+}
+
+.typing-dots .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dots .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing-pulse {
+  0%, 100% {
+    transform: scale(0.7);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Progress Bar */
+.progress-container {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.progress-bar {
+  height: 6px;
+  background-color: #eee;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--gold);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #777;
+  margin-top: 5px;
+  text-align: right;
+}
+
+/* Follow Up Questions */
+.follow-ups, .document-questions {
+  margin: 12px 0;
+  padding: 12px 15px;
+  background-color: rgba(240, 244, 253, 0.6);
+  border-radius: 12px;
+  max-width: 80%;
+}
+
+.follow-ups p, .document-questions p {
+  margin: 0 0 10px 0;
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.follow-up-btn, .document-question-btn {
+  background-color: white;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: 20px;
+  padding: 6px 14px;
+  margin: 5px 8px 5px 0;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.follow-up-btn:hover, .document-question-btn:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Input Controls in Recommendation Panel */
+.input-section {
+  margin-top: 25px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.input-label {
+  font-weight: 600;
+  margin: 15px 0 8px;
+  font-size: 14px;
+}
+
+.input-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.pill-button {
+  padding: 8px 16px;
+  border-radius: 30px;
+  border: 1px solid var(--gold);
+  background-color: white;
+  color: var(--gold);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.pill-button:hover {
+  background-color: rgba(255, 200, 0, 0.1);
+}
+
+.pill-button.selected {
+  background-color: var(--gold);
+  color: white;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.slider-container input[type="range"] {
+  flex: 1;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #eee;
+  border-radius: 3px;
+  outline: none;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--gold);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.slider-value {
+  min-width: 60px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.horizon-hint {
+  font-size: 12px;
+  color: #888;
+  margin-left: 10px;
+}
+
+.recommend-btn {
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  background-color: var(--gold);
+  border: none;
+  border-radius: 25px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: block;
+  margin: 20px auto 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.recommend-btn:hover {
+  background-color: #e6b200;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Feedback Buttons */
+.feedback-buttons {
+  display: flex;
+  margin-top: 8px;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.feedback-btn {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.feedback-btn:hover {
+  color: var(--gold);
+}
+
+.feedback-thanks {
+  font-size: 13px;
+  color: var(--success-color);
+}
+
+/* Emoji Picker */
+.emoji-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  margin-right: 8px;
+}
+
+.emoji-picker-dropdown {
+  position: absolute;
+  bottom: 80px;
+  left: 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  z-index: 100;
+}
+
+.emoji-picker-dropdown span {
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.emoji-picker-dropdown span:hover {
+  background-color: #f0f0f0;
+}
+
+/* Voice Button */
+.voice-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--gray);
+  transition: color 0.2s;
+}
+
+.voice-btn.listening {
+  color: #ff4b4b;
+}
+
+/* Dark Mode Adjustments */
+.dark-mode .sidebar,
+.dark-mode .chat-area,
+.dark-mode .chat-input,
+.dark-mode .quick-actions,
+.dark-mode .settings-menu,
+.dark-mode .emoji-picker-dropdown {
+  background-color: #1a2234;
+  border-color: #444;
+}
+
+.dark-mode .chat-box {
+  background-color: #0f1729;
+}
+
+.dark-mode .recommendation-area {
+  background-color: #252525;
+  border-color: #444;
+}
+
+.dark-mode .action-button,
+.dark-mode .settings-btn,
+.dark-mode .quick-action-btn,
+.dark-mode .pill-button {
+  background-color: #2a3447;
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+.dark-mode .action-button:hover,
+.dark-mode .settings-btn:hover,
+.dark-mode .quick-action-btn:hover {
+  background-color: var(--gold);
+  color: #222;
+}
+
+.dark-mode .pill-button.selected {
+  background-color: var(--gold);
+  color: #222;
+}
+
+.dark-mode .chat-input input {
+  background-color: #2a3447;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+.dark-mode .settings-item:hover {
+  background-color: rgba(255, 200, 0, 0.05);
+}
+
+.dark-mode .emoji-picker-dropdown span:hover {
+  background-color: #2a3447;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .recommendation-area {
+    width: 280px;
+  }
+  
+  .recommendation-toggle {
+    right: 290px;
+  }
+  
+  .recommendation-area.collapsed ~ .recommendation-toggle {
+    right: 10px;
+  }
+  
+  .main .chat-area {
+    width: calc(100% - 280px);
+    margin-right: 280px;
+  }
+  
+  .sidebar:not(.collapsed) ~ .main .recommendation-area:not(.collapsed) ~ .chat-input,
+  .sidebar:not(.collapsed) ~ .main .recommendation-area:not(.collapsed) ~ .quick-actions {
+    left: 250px;
+    right: 280px;
+  }
+}
+
+@media (max-width: 992px) {
+  .recommendation-area {
+    width: 250px;
+  }
+  
+  .recommendation-toggle {
+    right: 260px;
+  }
+  
+  .main .chat-area {
+    width: calc(100% - 250px);
+    margin-right: 250px;
+  }
+  
+  .sidebar:not(.collapsed) ~ .main .recommendation-area:not(.collapsed) ~ .chat-input,
+  .sidebar:not(.collapsed) ~ .main .recommendation-area:not(.collapsed) ~ .quick-actions {
+    left: 250px;
+    right: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    left: -250px; /* Default to hidden on mobile */
+  }
+  
+  .sidebar-toggle-btn {
+    left: 10px;
+  }
+  
+  .sidebar:not(.collapsed) {
+    left: 0;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  }
+  
+  .sidebar:not(.collapsed) ~ .sidebar-toggle-btn {
+    left: 260px;
+  }
+  
+  .main {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .recommendation-area {
+    right: -320px; /* Default to hidden on mobile */
+  }
+  
+  .recommendation-toggle {
+    right: 10px;
+  }
+  
+  .recommendation-area:not(.collapsed) {
+    right: 0;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  }
+  
+  .recommendation-area:not(.collapsed) ~ .recommendation-toggle {
+    right: 330px;
+  }
+  
+  .main .chat-area {
+    width: 100%;
+    margin-right: 0;
+  }
+  
+  .recommendation-area:not(.collapsed) ~ .chat-area {
+    width: 100%;
+    margin-right: 0;
+  }
+  
+  .chat-input,
+  .quick-actions {
+    left: 0;
+    right: 0;
+  }
+  
+  .recommendation-area:not(.collapsed) ~ .chat-input,
+  .recommendation-area:not(.collapsed) ~ .quick-actions {
+    width: 100%;
+    right: 0;
+  }
+  
+  .message {
+    max-width: 85%;
+  }
+}
+
+@media (max-width: 576px) {
+  .chat-controls {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .recommendation-area:not(.collapsed) ~ .chat-controls {
+    display: none;
+  }
+  
+  .chat-input {
+    padding: 10px 15px;
+  }
+  
+  .quick-actions {
+    padding: 10px 15px;
+    bottom: 60px;
+  }
+  
+  .emoji-picker-dropdown {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .message {
+    max-width: 90%;
+  }
 }

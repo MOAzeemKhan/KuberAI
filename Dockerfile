@@ -1,25 +1,33 @@
-# Use lightweight Python image
+# Use a lightweight Python base image
 FROM python:3.10-slim
 
-# Set working directory
+# Avoid interactive prompts during apt installs
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Set the working directory
 WORKDIR /app
 
-# Copy files
+# Copy all project files
 COPY . .
 
-# Install system packages (for PDF handling)
-RUN apt-get update && apt-get install -y \
+# Install system dependencies
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     tesseract-ocr \
     libtesseract-dev \
+    gcc \
+    libmagic-dev \
+    libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python packages
+
+# Install Python dependencies
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Expose app port
+# Expose the port Flask will run on
 EXPOSE 5000
 
-# Run the app
+# Run the Flask app
 CMD ["python", "app.py"]

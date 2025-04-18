@@ -10,82 +10,82 @@
 </head>
 <body>
 
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-top">
+    <h2 class="logo-text">KuberAI</h2>
+  </div>
+  <div class="nav-links">
+    <div class="nav-item"><span class="icon">🏠</span><span class="label">Home</span></div>
+    <div class="nav-item"><span class="icon">👤</span><span class="label">Profile</span></div>
+    <div class="nav-item"><span class="icon">💬</span><span class="label">Feedback</span></div>
+    <div class="nav-item"><span class="icon">⚙️</span><span class="label">Settings</span></div>
+  </div>
+  <div class="nav-item logout"><span class="icon">↩</span><span class="label">Log out</span></div>
+</div>
 
-  <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-top">
-      <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-      <h2 class="logo-text">KuberAI</h2>
+<!-- Sidebar Toggle Button -->
+<button id="sidebar-toggle" class="sidebar-toggle">☰</button>
+
+<!-- Main Content -->
+<div class="main">
+  <div class="chat-area">
+    <div id="chat-box" class="chat-box">
+      <div class="message bot">
+        <div style="font-weight: 600; margin-bottom: 4px;">KuberAI:</div>
+        <div>How can I help you invest smarter today?</div>
+      </div>
     </div>
-    <div class="nav-links">
-      <div class="nav-item"><span class="icon">🏠</span><span class="label">Home</span></div>
-      <div class="nav-item"><span class="icon">👤</span><span class="label">Profile</span></div>
-      <div class="nav-item"><span class="icon">💬</span><span class="label">Feedback</span></div>
-      <div class="nav-item"><span class="icon">⚙️</span><span class="label">Settings</span></div>
-    </div>
-    <div class="nav-item logout"><span class="icon">↩</span><span class="label">Log out</span></div>
+    <form class="chat-input" id="chat-form">
+      <label for="file-input" id="upload-btn" style="cursor: pointer; font-size: 20px; margin-right: 8px;">➕</label>
+      <input type="file" id="file-input" style="display: none;" accept=".pdf" />
+      <input type="text" id="chat-input" placeholder="Type here..." required>
+      <button type="submit">Send</button>
+    </form>
   </div>
 
-  <!-- Main Content -->
-  <div class="main">
-    <!-- Chat Area -->
-    <div class="chat-area">
-      <div style="flex: 1; overflow-y: auto; padding: 10px;" id="chat-box">
-        <div class="message bot">
-          <div style="font-weight: 600; margin-bottom: 4px;">KuberAI:</div>
-          <div>How can I help you invest smarter today?</div>
-        </div>
-      </div>
-      <form class="chat-input" id="chat-form">
-        <label for="file-input" id="upload-btn" style="cursor: pointer; font-size: 20px; margin-right: 8px;">➕</label>
-        <input type="file" id="file-input" style="display: none;" accept=".pdf" />
-        <input type="text" id="chat-input" placeholder="Type here..." required>
-        <button type="submit">Send</button>
-      </form>
+  <!-- Recommendation Panel -->
+  <div class="recommendation-area" id="recommendation-area">
+    <button id="recommendation-toggle" class="recommendation-toggle">➡️</button>
+    <h3>📈 Top 5 Recommendations</h3>
+    <div id="recommendation-list"></div>
 
+    <!-- Input Controls -->
+    <div class="input-section">
+      <div class="input-label">Asset Class</div>
+      <div class="input-group">
+        <div class="pill-button">Stocks</div>
+        <div class="pill-button">Mutual Funds</div>
+        <div class="pill-button">ETFs</div>
+        <div class="pill-button">Crypto</div>
+      </div>
+
+      <div class="input-label">Risk Level</div>
+      <div class="input-group">
+        <div class="pill-button">Low</div>
+        <div class="pill-button">Medium</div>
+        <div class="pill-button">High</div>
+      </div>
+
+      <div class="input-label">Investment Horizon <span class="horizon-hint">(Short &lt; 6 months, Long &gt; 1 year)</span></div>
+      <div class="input-group">
+        <div class="pill-button">Short Term</div>
+        <div class="pill-button">Long Term</div>
+      </div>
+
+      <div class="input-label">Investment Amount</div>
+      <div class="slider-container">
+        <input type="range" min="10000" max="100000" step="10000" value="50000" id="amount-slider">
+        <div class="slider-value" id="slider-val">₹50,000</div>
+      </div>
     </div>
 
-    <!-- Recommendation Panel -->
-    <div class="recommendation-area">
-      <h3>📈 Top 5 Recommendations</h3>
-
-      <div id="recommendation-list"></div>
-
-      <!-- Input Controls -->
-      <div class="input-section">
-        <div class="input-label">Asset Class</div>
-        <div class="input-group">
-          <div class="pill-button">Stocks</div>
-          <div class="pill-button">Mutual Funds</div>
-          <div class="pill-button">ETFs</div>
-          <div class="pill-button">Crypto</div>
-        </div>
-
-        <div class="input-label">Risk Level</div>
-        <div class="input-group">
-          <div class="pill-button">Low</div>
-          <div class="pill-button">Medium</div>
-          <div class="pill-button">High</div>
-        </div>
-
-        <div class="input-label">Investment Horizon <span class="horizon-hint">(Short &lt; 6 months, Long &gt; 1 year)</span></div>
-        <div class="input-group">
-          <div class="pill-button">Short Term</div>
-          <div class="pill-button">Long Term</div>
-        </div>
-
-        <div class="input-label">Investment Amount</div>
-        <div class="slider-container">
-          <input type="range" min="10000" max="100000" step="10000" value="50000" id="amount-slider">
-          <div class="slider-value" id="slider-val">₹50,000</div>
-        </div>
-      </div>
-
-      <div style="margin-top: 25px; text-align: center;">
-        <button id="get-recommendations" class="recommend-btn">Get Recommendations</button>
-      </div>
+    <div style="margin-top: 25px; text-align: center;">
+      <button id="get-recommendations" class="recommend-btn">Get Recommendations</button>
     </div>
   </div>
+
+</div>
 
 </body>
 </html>
