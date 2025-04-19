@@ -9,9 +9,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const sidebarToggle = document.getElementById('sidebar-toggle');
   const recommendationToggle = document.getElementById('recommendation-toggle');
   const mainContainer = document.querySelector('.main');
-
-document.addEventListener("DOMContentLoaded", () => {
-
   const recommendationList = document.getElementById("recommendation-list");
   const summaryBoxId = "portfolio-summary";
 
@@ -31,144 +28,156 @@ document.addEventListener("DOMContentLoaded", () => {
     if (horizonBtn) horizonBtn.classList.add("active");
   }
 
-  // 📤 Recommendations API
-  document.getElementById("get-recommendations").addEventListener("click", async () => {
-    const risk = document.querySelector('.input-group:nth-of-type(2) .pill-button.active')?.innerText || 'Medium';
-    const horizon = document.querySelector('.input-group:nth-of-type(3) .pill-button.active')?.innerText || 'Short Term';
-    const amount = document.getElementById('amount-slider').value;
+  // Initialize recommendation functionality
+  if (document.getElementById("get-recommendations")) {
+    document.getElementById("get-recommendations").addEventListener("click", async () => {
+      // Get the selected values
+      const risk = document.querySelector('.input-group:nth-of-type(2) .pill-button.active')?.innerText || 'Medium';
+      const horizon = document.querySelector('.input-group:nth-of-type(3) .pill-button.active')?.innerText || 'Short Term';
+      const amount = document.getElementById('amount-slider').value;
 
-    try {
-      const res = await fetch("/api/recommendations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ risk, horizon, amount })
-      });
+      console.log("Button clicked. Sending data to backend:", { risk, horizon, amount }); // Debugging log
 
-      const data = await res.json();
-      const { recommendations, explanation } = data;
+      try {
+        const res = await fetch("/api/recommendations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ risk, horizon, amount })
+        });
 
-      // Clear old content
-      recommendationList.innerHTML = "";
+        const data = await res.json();
+        console.log("Recommendation Data:", data); // Debugging line
 
-      // Save to localStorage
-      localStorage.setItem("kuberai-recommendation", JSON.stringify(data));
+        const { recommendations, explanation } = data;
 
-      // Add summary if not exists
-      let summaryBox = document.getElementById(summaryBoxId);
-      if (!summaryBox) {
-        summaryBox = document.createElement("div");
-        summaryBox.id = summaryBoxId;
-        summaryBox.style.marginTop = "20px";
-        summaryBox.style.backgroundColor = "#fffbea";
-        summaryBox.style.padding = "15px";
-        summaryBox.style.borderRadius = "10px";
-        summaryBox.style.fontSize = "14px";
-        recommendationList.parentNode.appendChild(summaryBox);
+        if (!recommendations || recommendations.length === 0) {
+          recommendationList.innerHTML = "<p>No recommendations available.</p>";
+          return;
+        }
+
+        // Clear old content
+        recommendationList.innerHTML = "";
+
+        // Save to localStorage
+        localStorage.setItem("kuberai-recommendation", JSON.stringify(data));
+
+        // Add summary if not exists
+        let summaryBox = document.getElementById(summaryBoxId);
+        if (!summaryBox) {
+          summaryBox = document.createElement("div");
+          summaryBox.id = summaryBoxId;
+          summaryBox.style.marginTop = "20px";
+          summaryBox.style.backgroundColor = "#fffbea";
+          summaryBox.style.padding = "15px";
+          summaryBox.style.borderRadius = "10px";
+          summaryBox.style.fontSize = "14px";
+          recommendationList.parentNode.appendChild(summaryBox);
+        }
+
+        // 🎴 Render Cards
+        recommendations.forEach(rec => {
+          const card = document.createElement("div");
+          card.className = "recommendation-card";
+          card.innerHTML = `
+            <div class="card-header">
+              <span class="ticker-pill">${rec.ticker.toUpperCase()}</span>
+            </div>
+            <div class="card-content">
+              <p><strong>Amount to Invest:</strong> ₹${rec.amount_to_invest.toLocaleString()}</p>
+              <p><strong>Action:</strong> ${rec.recommendation}</p>
+            </div>
+          `;
+          recommendationList.appendChild(card);
+        });
+
+        // 🧠 Set Explanation
+        summaryBox.innerText = explanation;
+
+      } catch (err) {
+        recommendationList.innerHTML = "<p style='color:red'>Failed to fetch recommendations. Please try again.</p>";
+        console.error("Error fetching recommendations:", err);
       }
-      console.log("Recommendations:", recommendations);
-
-      // 🎴 Render Cards
-      recommendations.forEach(rec => {
-        const card = document.createElement("div");
-        card.className = "recommendation-card";
-        card.innerHTML = `
-          <div class="card-header">
-            <span class="ticker-pill">${rec.ticker.toUpperCase()}</span>
-          </div>
-          <div class="card-content">
-            <p><strong>Amount to Invest:</strong> ₹${rec.amount_to_invest.toLocaleString()}</p>
-            <p><strong>Action:</strong> ${rec.recommendation}</p>
-          </div>
-        `;
-        recommendationList.appendChild(card);
-      });
-
-      // 🧠 Set Explanation
-      summaryBox.innerText = explanation;
-
-    } catch (err) {
-      recommendationList.innerHTML = "<p style='color:red'>Failed to fetch recommendations. Please try again.</p>";
-      console.error("Error fetching recommendations:", err);
-    }
-  });
+    });
+  }
 
   // 📄 CSV Download
-  document.getElementById("download-csv").addEventListener("click", () => {
-    const saved = localStorage.getItem("kuberai-recommendation");
-    if (!saved) return alert("No recommendations to export.");
+  if (document.getElementById("download-csv")) {
+    document.getElementById("download-csv").addEventListener("click", () => {
+      const saved = localStorage.getItem("kuberai-recommendation");
+      if (!saved) return alert("No recommendations to export.");
 
-    const data = JSON.parse(saved);
-    const rows = [
-      ["Ticker", "Amount to Invest", "Recommendation"],
-      ...data.recommendations.map(r => [r.ticker, r.amount_to_invest, r.recommendation])
-    ];
+      const data = JSON.parse(saved);
+      const rows = [
+        ["Ticker", "Amount to Invest", "Recommendation"],
+        ...data.recommendations.map(r => [r.ticker, r.amount_to_invest, r.recommendation])
+      ];
 
-    const csv = rows.map(row => row.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
+      const csv = rows.map(row => row.join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "kuberai_recommendations.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  });
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "kuberai_recommendations.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
 
   // 🧾 PDF Download
-  document.getElementById("download-pdf").addEventListener("click", () => {
-  const saved = localStorage.getItem("kuberai-recommendation");
-  if (!saved) return alert("No recommendations to export.");
+  if (document.getElementById("download-pdf")) {
+    document.getElementById("download-pdf").addEventListener("click", () => {
+      const saved = localStorage.getItem("kuberai-recommendation");
+      if (!saved) return alert("No recommendations to export.");
 
-  const { recommendations, explanation, risk_level, horizon, investment_amount } = JSON.parse(saved);
-  const { jsPDF } = window.jspdf;
+      const { recommendations, explanation, risk_level, horizon, investment_amount } = JSON.parse(saved);
+      const { jsPDF } = window.jspdf;
 
-  const doc = new jsPDF();
+      const doc = new jsPDF();
 
-  // Title
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
-  doc.text("KuberAI Investment Recommendations", 15, 20);
+      // Title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.text("KuberAI Investment Recommendations", 15, 20);
 
-  // Basic Info
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Investment Amount: ₹${investment_amount.toLocaleString()}`, 15, 32);
-  doc.text(`Risk Level: ${risk_level}`, 15, 40);
-  doc.text(`Horizon: ${horizon}`, 15, 48);
+      // Basic Info
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Investment Amount: ₹${investment_amount.toLocaleString()}`, 15, 32);
+      doc.text(`Risk Level: ${risk_level}`, 15, 40);
+      doc.text(`Horizon: ${horizon}`, 15, 48);
 
-  // Section: Top 5 Recommendations
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.text("Top 5 Recommendations:", 15, 60);
+      // Section: Top 5 Recommendations
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Top 5 Recommendations:", 15, 60);
 
-  let y = 70;
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
+      let y = 70;
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
 
-  recommendations.forEach((r, idx) => {
-    doc.text(`${idx + 1}. ${r.ticker.toUpperCase()} — ₹${r.amount_to_invest.toLocaleString()} — ${r.recommendation}`, 15, y);
-    y += 8;
-  });
+      recommendations.forEach((r, idx) => {
+        doc.text(`${idx + 1}. ${r.ticker.toUpperCase()} — ₹${r.amount_to_invest.toLocaleString()} — ${r.recommendation}`, 15, y);
+        y += 8;
+      });
 
-  // Section: Portfolio Summary
-  y += 8;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text("Portfolio Summary:", 15, y);
-  y += 10;
+      // Section: Portfolio Summary
+      y += 8;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text("Portfolio Summary:", 15, y);
+      y += 10;
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
 
-  const explanationLines = doc.splitTextToSize(explanation, 180); // Fit inside margins
-  doc.text(explanationLines, 15, y);
+      const explanationLines = doc.splitTextToSize(explanation, 180); // Fit inside margins
+      doc.text(explanationLines, 15, y);
 
-  // Save
-  doc.save("KuberAI_Recommendations.pdf");
-});
-});
-
-
+      // Save
+      doc.save("KuberAI_Recommendations.pdf");
+    });
+  }
 
   // Sidebar Toggle
   if (sidebarToggle) {

@@ -478,9 +478,10 @@ def landing_page():
 @app.route("/index")
 def dashboard():
     return render_template("index.html")
-
+print("above recomm")
 @app.route("/api/recommendations", methods=["POST"])
 def get_recommendations():
+    print("in recomm")
     try:
         # Parse incoming data
         data = request.json

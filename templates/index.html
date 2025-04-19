@@ -140,50 +140,51 @@
     </div>
   </div>
 
-  <!-- Recommendation Panel - Now outside page-specific containers -->
-  <div class="recommendation-area" id="recommendation-area">
-    <button id="recommendation-toggle" class="recommendation-toggle">➡️</button>
+ <!-- Recommendation Panel - No collapsing functionality anymore -->
+<div class="recommendation-area" id="recommendation-area">
     <h3>📈 Top 5 Recommendations</h3>
     <div id="recommendation-list"></div>
 
     <!-- Input Controls -->
     <div class="input-section">
-      <div class="input-label">Asset Class</div>
-      <div class="input-group">
-        <div class="pill-button">Stocks</div>
-        <div class="pill-button">Mutual Funds</div>
-        <div class="pill-button">ETFs</div>
-        <div class="pill-button">Crypto</div>
-      </div>
+        <div class="input-label">Asset Class</div>
+        <div class="input-group">
+            <div class="pill-button">Stocks</div>
+            <div class="pill-button">Mutual Funds</div>
+            <div class="pill-button">ETFs</div>
+            <div class="pill-button">Crypto</div>
+        </div>
 
-      <div class="input-label">Risk Level</div>
-      <div class="input-group">
-        <div class="pill-button">Low</div>
-        <div class="pill-button">Medium</div>
-        <div class="pill-button">High</div>
-      </div>
+        <div class="input-label">Risk Level</div>
+        <div class="input-group">
+            <div class="pill-button">Low</div>
+            <div class="pill-button">Medium</div>
+            <div class="pill-button">High</div>
+        </div>
 
-      <div class="input-label">Investment Horizon <span class="horizon-hint">(Short &lt; 6 months, Long &gt; 1 year)</span></div>
-      <div class="input-group">
-        <div class="pill-button">Short Term</div>
-        <div class="pill-button">Long Term</div>
-      </div>
+        <div class="input-label">Investment Horizon</div>
+        <div class="input-group">
+            <div class="pill-button">Short Term</div>
+            <div class="pill-button">Long Term</div>
+        </div>
 
-      <div class="input-label">Investment Amount</div>
-      <div class="slider-container">
-        <input type="range" min="10000" max="100000" step="10000" value="50000" id="amount-slider">
-        <div class="slider-value" id="slider-val">₹50,000</div>
-      </div>
+        <div class="input-label">Investment Amount</div>
+        <div class="slider-container">
+            <input type="range" min="10000" max="100000" step="10000" value="50000" id="amount-slider">
+            <div class="slider-value" id="slider-val">₹50,000</div>
+        </div>
     </div>
 
     <div style="margin-top: 25px; text-align: center;">
-      <button id="get-recommendations" class="recommend-btn">Get Recommendations</button>
-      <div style="margin-top: 10px; text-align: center;">
-          <button class="recommend-btn" id="download-csv">📥 Download CSV</button>
-          <button class="recommend-btn" id="download-pdf">🧾 Download PDF</button>
-      </div>
+        <button id="get-recommendations" class="recommend-btn">Get Recommendations</button>
+        <div style="margin-top: 10px; text-align: center;">
+            <button class="recommend-btn" id="download-csv">📥 Download CSV</button>
+            <button class="recommend-btn" id="download-pdf">🧾 Download PDF</button>
+        </div>
     </div>
-  </div>
+</div>
+
+
 </div>
 
 <script>
