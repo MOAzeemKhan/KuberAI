@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>KuberAI</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script defer src="{{ url_for('static', filename='script.js') }}"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -16,8 +17,8 @@
     <h2 class="logo-text">KuberAI</h2>
   </div>
   <div class="nav-links">
-    <div class="nav-item"><span class="icon">🏠</span><span class="label">Home</span></div>
-    <div class="nav-item"><span class="icon">👤</span><span class="label">Profile</span></div>
+    <a href="/index" class="nav-item"><span class="icon">🏠</span><span class="label">Home</span></a>
+    <div class="nav-item" data-page="profile"><span class="icon">👤</span><span class="label">Profile</span></div>
     <div class="nav-item"><span class="icon">💬</span><span class="label">Feedback</span></div>
     <div class="nav-item"><span class="icon">⚙️</span><span class="label">Settings</span></div>
   </div>
@@ -29,22 +30,117 @@
 
 <!-- Main Content -->
 <div class="main">
-  <div class="chat-area">
-    <div id="chat-box" class="chat-box">
-      <div class="message bot">
-        <div style="font-weight: 600; margin-bottom: 4px;">KuberAI:</div>
-        <div>How can I help you invest smarter today?</div>
+  <!-- Content Area with Pages -->
+  <div class="content-area">
+    <!-- Home Page Content -->
+    <div id="home-page" class="page-content active">
+      <div class="chat-area">
+        <div id="chat-box" class="chat-box">
+          <div class="message bot">
+            <div style="font-weight: 600; margin-bottom: 4px;">KuberAI:</div>
+            <div>How can I help you invest smarter today?</div>
+          </div>
+        </div>
+        <form class="chat-input" id="chat-form">
+          <label for="file-input" id="upload-btn" style="cursor: pointer; font-size: 20px; margin-right: 8px;">➕</label>
+          <input type="file" id="file-input" style="display: none;" accept=".pdf" />
+          <input type="text" id="chat-input" placeholder="Type here..." required>
+          <button type="submit">Send</button>
+        </form>
       </div>
     </div>
-    <form class="chat-input" id="chat-form">
-      <label for="file-input" id="upload-btn" style="cursor: pointer; font-size: 20px; margin-right: 8px;">➕</label>
-      <input type="file" id="file-input" style="display: none;" accept=".pdf" />
-      <input type="text" id="chat-input" placeholder="Type here..." required>
-      <button type="submit">Send</button>
-    </form>
+
+    <!-- Profile Page Content -->
+    <div id="profile-page" class="page-content">
+      <div class="profile-container">
+        <h1>User Profile</h1>
+
+        <div class="profile-card">
+          <div class="profile-header">
+            <div class="profile-avatar">👤</div>
+            <div class="profile-name">
+              <h2>John Doe</h2>
+              <p class="profile-email">john.doe@example.com</p>
+            </div>
+          </div>
+
+          <div class="profile-section">
+            <h3>Investment Summary</h3>
+            <div class="profile-stats">
+              <div class="stat-card">
+                <div class="stat-value">₹450,000</div>
+                <div class="stat-label">Total Invested</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">+12.4%</div>
+                <div class="stat-label">Overall Returns</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">8</div>
+                <div class="stat-label">Active Investments</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-section">
+            <h3>Risk Profile</h3>
+            <div class="risk-meter">
+              <div class="risk-level" style="width: 65%"></div>
+            </div>
+            <p class="risk-label">Moderate to High</p>
+          </div>
+
+          <div class="profile-section">
+            <h3>Preferences</h3>
+            <div class="preferences-list">
+              <div class="preference-item">
+                <span>Preferred Investment Type</span>
+                <span>Stocks, ETFs</span>
+              </div>
+              <div class="preference-item">
+                <span>Investment Horizon</span>
+                <span>Long Term</span>
+              </div>
+              <div class="preference-item">
+                <span>Monthly Investment Goal</span>
+                <span>₹25,000</span>
+              </div>
+            </div>
+            <button class="edit-preferences-btn">Edit Preferences</button>
+          </div>
+        </div>
+
+        <div class="profile-card">
+          <h3>Recent Activities</h3>
+          <div class="activity-timeline">
+            <div class="activity-item">
+              <div class="activity-date">Apr 15, 2025</div>
+              <div class="activity-content">
+                <div class="activity-title">Portfolio Analysis</div>
+                <div class="activity-desc">Analyzed HDFC Bank quarterly report</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-date">Apr 10, 2025</div>
+              <div class="activity-content">
+                <div class="activity-title">Investment Recommendation</div>
+                <div class="activity-desc">Received recommendations for high-growth ETFs</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-date">Apr 5, 2025</div>
+              <div class="activity-content">
+                <div class="activity-title">Document Analysis</div>
+                <div class="activity-desc">Uploaded and analyzed annual financial statement</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Recommendation Panel -->
+  <!-- Recommendation Panel - Now outside page-specific containers -->
   <div class="recommendation-area" id="recommendation-area">
     <button id="recommendation-toggle" class="recommendation-toggle">➡️</button>
     <h3>📈 Top 5 Recommendations</h3>
@@ -82,10 +178,91 @@
 
     <div style="margin-top: 25px; text-align: center;">
       <button id="get-recommendations" class="recommend-btn">Get Recommendations</button>
+      <div style="margin-top: 10px; text-align: center;">
+          <button class="recommend-btn" id="download-csv">📥 Download CSV</button>
+          <button class="recommend-btn" id="download-pdf">🧾 Download PDF</button>
+      </div>
     </div>
   </div>
-
 </div>
+
+<script>
+  // Navigation functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const navItems = document.querySelectorAll('.nav-links .nav-item');
+    const pages = document.querySelectorAll('.page-content');
+
+    navItems.forEach(item => {
+      item.addEventListener('click', function() {
+        const pageName = this.getAttribute('data-page');
+
+        // Remove active class from all nav items and add to current
+        navItems.forEach(navItem => navItem.classList.remove('active'));
+        this.classList.add('active');
+
+        // Hide all pages and show the selected one
+        pages.forEach(page => page.classList.remove('active'));
+        document.getElementById(pageName + '-page').classList.add('active');
+      });
+    });
+
+    // Sidebar toggle functionality
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.getElementById('sidebar');
+
+    sidebarToggle.addEventListener('click', function() {
+      sidebar.classList.toggle('collapsed');
+      document.querySelector('.main').classList.toggle('expanded');
+    });
+
+    // Recommendation panel toggle
+    const recommendationToggle = document.getElementById('recommendation-toggle');
+    const recommendationArea = document.getElementById('recommendation-area');
+
+    recommendationToggle.addEventListener('click', function() {
+      recommendationArea.classList.toggle('collapsed');
+      this.textContent = recommendationArea.classList.contains('collapsed') ? '⬅️' : '➡️';
+    });
+
+    // Slider value update
+    const amountSlider = document.getElementById('amount-slider');
+    const sliderVal = document.getElementById('slider-val');
+
+    amountSlider.addEventListener('input', function() {
+      sliderVal.textContent = '₹' + this.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    });
+
+    // Pill button selection
+    const pillButtons = document.querySelectorAll('.pill-button');
+
+    pillButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        // Find siblings in the same group
+        const siblings = this.parentElement.querySelectorAll('.pill-button');
+
+        // Toggle active class for this button
+        this.classList.toggle('active');
+
+        // If this is a single-selection group, deactivate siblings
+        if (!this.parentElement.classList.contains('multi-select')) {
+          siblings.forEach(sib => {
+            if (sib !== this) sib.classList.remove('active');
+          });
+        }
+      });
+    });
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+  // Handle Logout click
+  const logoutBtn = document.querySelector('.nav-item.logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      window.location.href = "/dashboard";  // Redirects to Flask route /dashboard
+    });
+  }
+});
+
+</script>
 
 </body>
 </html>

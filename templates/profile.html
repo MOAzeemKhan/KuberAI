@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KuberAI - Profile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script defer src="{{ url_for('static', filename='script.js') }}"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-top">
+    <h2 class="logo-text">KuberAI</h2>
+  </div>
+  <div class="nav-links">
+    <a href="/index" class="nav-item"><span class="icon">🏠</span><span class="label">Home</span></a>
+    <div class="nav-item active" data-page="profile"><span class="icon">👤</span><span class="label">Profile</span></div>
+    <div class="nav-item" data-page="feedback"><span class="icon">💬</span><span class="label">Feedback</span></div>
+    <div class="nav-item" data-page="settings"><span class="icon">⚙️</span><span class="label">Settings</span></div>
+  </div>
+  <div class="nav-item logout"><span class="icon">↩</span><span class="label">Log out</span></div>
+</div>
+
+<!-- Sidebar Toggle Button -->
+<button id="sidebar-toggle" class="sidebar-toggle">☰</button>
+
+<!-- Main Content -->
+<div class="main">
+  <div class="profile-container">
+    <h1>User Profile</h1>
+
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar">👤</div>
+        <div class="profile-name">
+          <h2>John Doe</h2>
+          <p class="profile-email">john.doe@example.com</p>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <h3>Investment Summary</h3>
+        <div class="profile-stats">
+          <div class="stat-card">
+            <div class="stat-value">₹450,000</div>
+            <div class="stat-label">Total Invested</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">+12.4%</div>
+            <div class="stat-label">Overall Returns</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">8</div>
+            <div class="stat-label">Active Investments</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <h3>Risk Profile</h3>
+        <div class="risk-meter">
+          <div class="risk-level" style="width: 65%"></div>
+        </div>
+        <p class="risk-label">Moderate to High</p>
+      </div>
+
+      <div class="profile-section">
+        <h3>Preferences</h3>
+        <div class="preferences-list">
+          <div class="preference-item">
+            <span>Preferred Investment Type</span>
+            <span>Stocks, ETFs</span>
+          </div>
+          <div class="preference-item">
+            <span>Investment Horizon</span>
+            <span>Long Term</span>
+          </div>
+          <div class="preference-item">
+            <span>Monthly Investment Goal</span>
+            <span>₹25,000</span>
+          </div>
+        </div>
+        <button class="edit-preferences-btn">Edit Preferences</button>
+      </div>
+    </div>
+
+    <div class="profile-card">
+      <h3>Recent Activities</h3>
+      <div class="activity-timeline">
+        <div class="activity-item">
+          <div class="activity-date">Apr 15, 2025</div>
+          <div class="activity-content">
+            <div class="activity-title">Portfolio Analysis</div>
+            <div class="activity-desc">Analyzed HDFC Bank quarterly report</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-date">Apr 10, 2025</div>
+          <div class="activity-content">
+            <div class="activity-title">Investment Recommendation</div>
+            <div class="activity-desc">Received recommendations for high-growth ETFs</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-date">Apr 5, 2025</div>
+          <div class="activity-content">
+            <div class="activity-title">Document Analysis</div>
+            <div class="activity-desc">Uploaded and analyzed annual financial statement</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+  // Handle Logout click
+  const logoutBtn = document.querySelector('.nav-item.logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      window.location.href = "/dashboard";  // Redirects to Flask route /dashboard
+    });
+  }
+});
+
+</script>
+</body>
+</html>

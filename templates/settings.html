@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KuberAI - Settings</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script defer src="{{ url_for('static', filename='script.js') }}"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body class="settings-page">
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-top">
+    <h2 class="logo-text">KuberAI</h2>
+  </div>
+  <div class="nav-links">
+    <a href="/index" class="nav-item"><span class="icon">🏠</span><span class="label">Home</span></a>
+    <div class="nav-item" data-page="profile"><span class="icon">👤</span><span class="label">Profile</span></div>
+    <div class="nav-item" data-page="feedback"><span class="icon">💬</span><span class="label">Feedback</span></div>
+    <div class="nav-item active" data-page="settings"><span class="icon">⚙️</span><span class="label">Settings</span></div>
+  </div>
+  <div class="nav-item logout"><span class="icon">↩</span><span class="label">Log out</span></div>
+</div>
+
+<!-- Sidebar Toggle Button -->
+<button id="sidebar-toggle" class="sidebar-toggle">☰</button>
+
+<!-- Main Content -->
+<div class="main">
+  <div class="settings-container">
+    <h1>Account Settings</h1>
+
+    <div class="settings-section">
+      <h2>Profile Information</h2>
+      <form id="profile-form" class="settings-form">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" class="settings-input" value="John Doe">
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" class="settings-input" value="john.doe@example.com">
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" class="settings-input" value="+91 9876543210">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="settings-btn">Save Changes</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="settings-section">
+      <h2>Security</h2>
+      <form id="password-form" class="settings-form">
+        <div class="form-group">
+          <label for="current-password">Current Password</label>
+          <input type="password" id="current-password" class="settings-input">
+        </div>
+
+        <div class="form-group">
+          <label for="new-password">New Password</label>
+          <input type="password" id="new-password" class="settings-input">
+        </div>
+
+        <div class="form-group">
+          <label for="confirm-password">Confirm New Password</label>
+          <input type="password" id="confirm-password" class="settings-input">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="settings-btn">Update Password</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="settings-section">
+      <h2>Investment Preferences</h2>
+      <form id="preference-form" class="settings-form">
+        <div class="form-group">
+          <label for="risk-tolerance">Risk Tolerance</label>
+          <select id="risk-tolerance" class="settings-input">
+            <option value="low">Low</option>
+            <option value="moderate" selected>Moderate</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="investment-horizon">Investment Horizon</label>
+          <select id="investment-horizon" class="settings-input">
+            <option value="short">Short Term (< 6 months)</option>
+            <option value="medium">Medium Term (6-12 months)</option>
+            <option value="long" selected>Long Term (> 1 year)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Preferred Investment Types</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" checked> Stocks
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox"> Bonds
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" checked> ETFs
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox"> Mutual Funds
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox"> Cryptocurrency
+            </label>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="settings-btn">Save Preferences</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="settings-section">
+      <h2>Notifications</h2>
+      <form id="notification-form" class="settings-form">
+        <div class="form-group">
+          <label>Email Notifications</label>
+          <div class="toggle-group">
+            <div class="toggle-item">
+              <span>Investment Recommendations</span>
+              <label class="toggle">
+                <input type="checkbox" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-item">
+              <span>Portfolio Alerts</span>
+              <label class="toggle">
+                <input type="checkbox" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-item">
+              <span>Market News</span>
+              <label class="toggle">
+                <input type="checkbox">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-item">
+              <span>Educational Content</span>
+              <label class="toggle">
+                <input type="checkbox" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="settings-btn">Save Notification Settings</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="settings-section danger-zone">
+      <h2>Account Management</h2>
+      <div class="danger-actions">
+        <button class="danger-btn">Deactivate Account</button>
+        <button class="danger-btn severe">Delete Account</button>
+      </div>
+      <p class="danger-note">Warning: Account deletion is permanent and cannot be undone.</p>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+  // Handle Logout click
+  const logoutBtn = document.querySelector('.nav-item.logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      window.location.href = "/dashboard";  // Redirects to Flask route /dashboard
+    });
+  }
+});
+
+</script>
+</body>
+</html>

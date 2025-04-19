@@ -47,6 +47,14 @@ import shutil
 from pathlib import Path
 
 from together import Together
+from stable_baselines3 import SAC
+from finrl.meta.env_stock_trading.env_stocktrading import StockTradingEnv
+from finrl.meta.preprocessor.yahoodownloader import YahooDownloader
+from finrl.meta.preprocessor.preprocessors import FeatureEngineer, data_split
+from finrl.config import INDICATORS
+import itertools
+import random
+
 # Load LLM & retriever
 from dotenv import load_dotenv
 
@@ -303,12 +311,25 @@ CORS(app)
 @app.route("/", methods=["GET"])
 def home():
     return redirect("/dashboard")
+@app.route("/login")
+def login_page():
+    return redirect("/dashboard")
 
 @app.route("/health", methods=["GET"])
 def health_check():
     return "✅ Health check passed. KuberAI backend running.", 200
 
+@app.route("/profile")
+def profile():
+    return render_template("profile.html")
 
+@app.route("/feedback")
+def feedback():
+    return render_template("feedback.html")
+
+@app.route("/settings")
+def settings():
+    return render_template("settings.html")
 # App configuration
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
 processing_status = {}  # Dictionary to track processing status by ID
@@ -382,6 +403,73 @@ else:
 qa_chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever, return_source_documents=False,
                                        chain_type_kwargs={"prompt": prompt})
 
+# Load Trained Tickers
+with open('model/trained_tickers.txt', 'r') as f:
+    SYMBOLS = [line.strip() for line in f.readlines()]
+
+def get_trade_env(start_date, end_date):
+    df_raw = YahooDownloader(start_date=start_date, end_date=end_date, ticker_list=SYMBOLS).fetch_data()
+    df_raw = df_raw.drop_duplicates(subset=["date", "tic"], keep="first")
+
+    fe = FeatureEngineer(use_technical_indicator=True, tech_indicator_list=INDICATORS, use_vix=True, use_turbulence=True)
+    df_processed = fe.preprocess_data(df_raw)
+
+    list_ticker = df_processed["tic"].unique().tolist()
+    list_date = list(pd.date_range(df_processed['date'].min(), df_processed['date'].max()).astype(str))
+    combo = list(itertools.product(list_date, list_ticker))
+
+    df_full = pd.DataFrame(combo, columns=["date", "tic"]).merge(df_processed, on=["date", "tic"], how="left")
+    df_full = df_full[df_full['date'].isin(df_processed['date'])]
+    df_full = df_full.sort_values(["date", "tic"]).fillna(0)
+
+    trade = data_split(df_full, start_date, end_date)
+
+    stock_dim = len(trade.tic.unique())
+    state_space = 1 + 2 * stock_dim + len(INDICATORS) * stock_dim
+
+    env_kwargs = {
+        "hmax": 100,
+        "initial_amount": 100000,
+        "num_stock_shares": [0] * stock_dim,
+        "buy_cost_pct": [0.001] * stock_dim,
+        "sell_cost_pct": [0.001] * stock_dim,
+        "state_space": state_space,
+        "stock_dim": stock_dim,
+        "tech_indicator_list": INDICATORS,
+        "action_space": stock_dim,
+        "reward_scaling": 1e-4
+    }
+
+    env_trade = StockTradingEnv(df=trade, **env_kwargs)
+    return env_trade, trade
+
+def generate_explanation(top5_df, risk_level, horizon):
+    explanation_lines = []
+    sectors = set()
+
+    for _, row in top5_df.iterrows():
+        ticker = row['ticker'].upper()
+        sector = "General"
+        sectors.add(sector)
+
+        volatility_label = "stable" if row['volatility'] < 0.03 else "volatile"
+        momentum_label = "gaining momentum" if row['momentum'] > 0 else "slowing"
+
+        explanation_lines.append(f"{ticker}: {sector}, {volatility_label}, {momentum_label}")
+
+    risk_comment = {
+        "Low": "focuses on safety and consistency.",
+        "Medium": "balances risk and return.",
+        "High": "targets higher growth, with higher volatility."
+    }
+
+    horizon_comment = {
+        "Short Term": "short-term momentum opportunities.",
+        "Long Term": "long-term compounding plays."
+    }
+
+    summary = f"Portfolio {risk_comment.get(risk_level, '')} It emphasizes {horizon_comment.get(horizon, '')} Spread across {len(sectors)} sectors."
+    return "\n".join(explanation_lines) + "\n\n" + summary
 
 @app.route("/dashboard", methods=["GET"])
 def landing_page():
@@ -390,6 +478,70 @@ def landing_page():
 @app.route("/index")
 def dashboard():
     return render_template("index.html")
+
+@app.route("/api/recommendations", methods=["POST"])
+def get_recommendations():
+    try:
+        # Parse incoming data
+        data = request.json
+        risk = data.get("risk", "Medium")
+        horizon = data.get("horizon", "Short Term")
+        amount = float(data.get("amount", 50000))
+
+        TRADE_START_DATE = '2020-07-01'
+        TRADE_END_DATE = '2024-04-01'
+
+        # Load environment and model
+        env_trade, trade = get_trade_env(TRADE_START_DATE, TRADE_END_DATE)
+        model = SAC.load("model/sac_model_v2.zip")
+        print("Model loaded successfully")
+
+        # Predict with model
+        state = env_trade.reset()
+        if isinstance(state, tuple):
+            state = state[0]
+
+        action, _ = model.predict(state, deterministic=True)
+
+        # Generate recommendations
+        df = pd.DataFrame({"ticker": trade["tic"].unique(), "allocation_score": action})
+        recent = trade.sort_values(by=["date"]).groupby("tic").tail(120)
+
+        vol = recent.groupby("tic")["close"].std().reset_index().rename(columns={"close": "volatility"})
+        mom = recent.groupby("tic").apply(
+            lambda x: (x.iloc[-1]["close"] - x.iloc[-30]["close"]) / x.iloc[-30]["close"]).reset_index(name="momentum")
+
+        vol.rename(columns={"tic": "ticker"}, inplace=True)
+        mom.rename(columns={"tic": "ticker"}, inplace=True)
+
+        df = df.merge(vol, on="ticker").merge(mom, on="ticker")
+
+        # Adjust alpha/beta based on risk level
+        alpha = {"Low": 0.9, "Medium": 0.7, "High": 0.5}.get(risk, 0.7)
+        beta = 0.5
+
+        df["final_score"] = df["allocation_score"] - (alpha * df["volatility"]) + (beta * df["momentum"])
+        top5 = df.sort_values(by="final_score", ascending=False).head(5)
+
+        top5["weight"] = top5["final_score"] / top5["final_score"].sum()
+        top5["amount_to_invest"] = (top5["weight"] * amount).round(2)
+        top5["recommendation"] = "Buy"
+
+        result = {
+            "recommendations": top5[["ticker", "amount_to_invest", "recommendation"]].to_dict(orient="records"),
+            "explanation": generate_explanation(top5, risk, horizon),
+            "investment_amount": amount,
+            "risk_level": risk,
+            "horizon": horizon
+        }
+
+        print(f"Recommendations generated: {len(result['recommendations'])} recommendations")
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/upload_pdf", methods=["POST"])
 def upload_pdf():
@@ -592,4 +744,4 @@ if __name__ == "__main__":
     os.makedirs("docs/chroma_rag", exist_ok=True)
     os.makedirs("static/extracted", exist_ok=True)
     os.makedirs("temp_images", exist_ok=True)
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)

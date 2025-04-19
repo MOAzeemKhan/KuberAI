@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KuberAI - Feedback</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script defer src="{{ url_for('static', filename='script.js') }}"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-top">
+    <h2 class="logo-text">KuberAI</h2>
+  </div>
+  <div class="nav-links">
+    <a href="/index" class="nav-item"><span class="icon">🏠</span><span class="label">Home</span></a>
+    <div class="nav-item" data-page="profile"><span class="icon">👤</span><span class="label">Profile</span></div>
+    <div class="nav-item active" data-page="feedback"><span class="icon">💬</span><span class="label">Feedback</span></div>
+    <div class="nav-item" data-page="settings"><span class="icon">⚙️</span><span class="label">Settings</span></div>
+  </div>
+  <div class="nav-item logout"><span class="icon">↩</span><span class="label">Log out</span></div>
+</div>
+
+<!-- Sidebar Toggle Button -->
+<button id="sidebar-toggle" class="sidebar-toggle">☰</button>
+
+<!-- Main Content -->
+<div class="main">
+  <div class="feedback-container">
+    <h1>Share Your Feedback</h1>
+
+    <div class="feedback-card">
+      <h3>How was your experience with KuberAI?</h3>
+
+      <div class="rating-container">
+        <div class="rating-label">Rate your overall experience:</div>
+        <div class="star-rating">
+          <span class="star" data-rating="1">★</span>
+          <span class="star" data-rating="2">★</span>
+          <span class="star" data-rating="3">★</span>
+          <span class="star" data-rating="4">★</span>
+          <span class="star" data-rating="5">★</span>
+        </div>
+      </div>
+
+      <form id="feedback-form">
+        <div class="form-group">
+          <label for="feedback-category">What would you like to give feedback on?</label>
+          <select id="feedback-category" class="feedback-input">
+            <option value="">Select a category</option>
+            <option value="chatbot">Chatbot Assistance</option>
+            <option value="recommendations">Investment Recommendations</option>
+            <option value="document-analysis">Document Analysis</option>
+            <option value="interface">User Interface</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="feedback-text">Tell us more:</label>
+          <textarea id="feedback-text" class="feedback-input" rows="5" placeholder="Share your thoughts, suggestions, or report any issues..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="feedback-email">Your email (optional):</label>
+          <input type="email" id="feedback-email" class="feedback-input" placeholder="email@example.com">
+          <p class="form-hint">We'll only use this to follow up on your feedback if needed.</p>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="submit-btn">Submit Feedback</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="feedback-card">
+      <h3>Previous Feedback</h3>
+
+      <div class="previous-feedback">
+        <div class="feedback-item">
+          <div class="feedback-header">
+            <div class="feedback-topic">Chatbot Assistance</div>
+            <div class="feedback-date">Apr 10, 2025</div>
+          </div>
+          <div class="feedback-content">
+            The chatbot was very helpful in explaining complex investment terms in simple language. Would be nice to have more examples for beginners.
+          </div>
+          <div class="feedback-status">Status: <span class="status-tag">Under Review</span></div>
+        </div>
+
+        <div class="feedback-item">
+          <div class="feedback-header">
+            <div class="feedback-topic">Investment Recommendations</div>
+            <div class="feedback-date">Mar 25, 2025</div>
+          </div>
+          <div class="feedback-content">
+            Recommendations were spot-on for my risk profile. Would appreciate more details on expected returns.
+          </div>
+          <div class="feedback-status">Status: <span class="status-tag completed">Implemented</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+  // Handle Logout click
+  const logoutBtn = document.querySelector('.nav-item.logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      window.location.href = "/dashboard";  // Redirects to Flask route /dashboard
+    });
+  }
+});
+
+</script>
+</body>
+</html>
