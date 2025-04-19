@@ -479,6 +479,8 @@ def landing_page():
 def dashboard():
     return render_template("index.html")
 print("above recomm")
+
+
 @app.route("/api/recommendations", methods=["POST"])
 def get_recommendations():
     print("in recomm")
@@ -508,14 +510,28 @@ def get_recommendations():
         df = pd.DataFrame({"ticker": trade["tic"].unique(), "allocation_score": action})
         recent = trade.sort_values(by=["date"]).groupby("tic").tail(120)
 
+        # Check if required columns are present before proceeding
+        required_columns = ['close', 'tic']
+        missing_columns = [col for col in required_columns if col not in recent.columns]
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {', '.join(missing_columns)}")
+
+        # Volatility calculation
         vol = recent.groupby("tic")["close"].std().reset_index().rename(columns={"close": "volatility"})
+
+        # Momentum calculation (ensure that there are enough rows to calculate momentum)
+        if len(recent) < 30:
+            raise ValueError("Not enough data to calculate momentum (needs at least 30 rows)")
+
         mom = recent.groupby("tic").apply(
             lambda x: (x.iloc[-1]["close"] - x.iloc[-30]["close"]) / x.iloc[-30]["close"]).reset_index(name="momentum")
 
+        # Merge volatility and momentum into df
         vol.rename(columns={"tic": "ticker"}, inplace=True)
         mom.rename(columns={"tic": "ticker"}, inplace=True)
-
         df = df.merge(vol, on="ticker").merge(mom, on="ticker")
+
+        print("Columns in the DataFrame:", df.columns)
 
         # Adjust alpha/beta based on risk level
         alpha = {"Low": 0.9, "Medium": 0.7, "High": 0.5}.get(risk, 0.7)
@@ -542,7 +558,6 @@ def get_recommendations():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
-
 
 @app.route("/upload_pdf", methods=["POST"])
 def upload_pdf():

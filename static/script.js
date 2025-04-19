@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const mainContainer = document.querySelector('.main');
   const recommendationList = document.getElementById("recommendation-list");
   const summaryBoxId = "portfolio-summary";
+  const loadingSpinner = document.getElementById("loading-spinner"); // Spinner element
 
   // Restore saved selection
   const saved = localStorage.getItem("kuberai-recommendation");
@@ -31,6 +32,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize recommendation functionality
   if (document.getElementById("get-recommendations")) {
     document.getElementById("get-recommendations").addEventListener("click", async () => {
+      // Show loading spinner
+      loadingSpinner.style.display = "flex";
+
       // Get the selected values
       const risk = document.querySelector('.input-group:nth-of-type(2) .pill-button.active')?.innerText || 'Medium';
       const horizon = document.querySelector('.input-group:nth-of-type(3) .pill-button.active')?.innerText || 'Short Term';
@@ -96,10 +100,12 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (err) {
         recommendationList.innerHTML = "<p style='color:red'>Failed to fetch recommendations. Please try again.</p>";
         console.error("Error fetching recommendations:", err);
+      } finally {
+        // Hide the loading spinner once recommendations are fetched or an error occurs
+        loadingSpinner.style.display = "none";
       }
     });
   }
-
   // 📄 CSV Download
   if (document.getElementById("download-csv")) {
     document.getElementById("download-csv").addEventListener("click", () => {
@@ -178,6 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.save("KuberAI_Recommendations.pdf");
     });
   }
+
 
   // Sidebar Toggle
   if (sidebarToggle) {
@@ -1226,4 +1233,5 @@ document.addEventListener("DOMContentLoaded", () => {
     feedbackDiv.appendChild(thumbsDown);
     messageElement.appendChild(feedbackDiv);
   }
+
 });

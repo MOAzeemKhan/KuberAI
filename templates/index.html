@@ -141,6 +141,11 @@
   </div>
 
  <!-- Recommendation Panel - No collapsing functionality anymore -->
+    <!-- Add this spinner inside the recommendation area or just before the recommendation list -->
+<div id="loading-spinner" style="display: none;">
+  <div class="spinner"></div>
+</div>
+
 <div class="recommendation-area" id="recommendation-area">
     <h3>📈 Top 5 Recommendations</h3>
     <div id="recommendation-list"></div>
@@ -214,15 +219,6 @@
     sidebarToggle.addEventListener('click', function() {
       sidebar.classList.toggle('collapsed');
       document.querySelector('.main').classList.toggle('expanded');
-    });
-
-    // Recommendation panel toggle
-    const recommendationToggle = document.getElementById('recommendation-toggle');
-    const recommendationArea = document.getElementById('recommendation-area');
-
-    recommendationToggle.addEventListener('click', function() {
-      recommendationArea.classList.toggle('collapsed');
-      this.textContent = recommendationArea.classList.contains('collapsed') ? '⬅️' : '➡️';
     });
 
     // Slider value update
